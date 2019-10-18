@@ -10,8 +10,8 @@ class Constants {
     static final String LOG_TAG = "COLOR_GLUE";
 
     static final int TOUCH_DOWN = 0;
-    private static final int TOUCH_MOVE = 1;
-    private static final int TOUCH_UP = 2;
+    static final int TOUCH_MOVE = 1;
+    static final int TOUCH_UP = 2;
 
     static int getTouchType(MotionEvent evt) {
         switch (evt.getAction()) {
