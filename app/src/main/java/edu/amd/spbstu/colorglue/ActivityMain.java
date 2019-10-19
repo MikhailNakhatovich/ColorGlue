@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import edu.amd.spbstu.colorglue.game.ViewGame;
 import edu.amd.spbstu.colorglue.intro.AppIntro;
 import edu.amd.spbstu.colorglue.intro.ViewIntro;
 
@@ -23,7 +24,7 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
 	
 	AppIntro _app;
 	ViewIntro _viewIntro;
-    // ViewGame _viewGame;
+    ViewGame _viewGame;
 
 	// screen dim
 	int _screenW, _screenH;
@@ -68,9 +69,9 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
 				break;
 			case VIEW_GAME:
 				Log.d(LOG_TAG, "Switch to game");
-//				_viewGame = new ViewGame(this);
-//				setContentView(_viewGame);
-//				_viewGame.start();
+				_viewGame = new ViewGame(this);
+				setContentView(_viewGame);
+				_viewGame.start();
 				break;
 			default:
 				Log.d(LOG_TAG, "Undefined id of view" );
@@ -89,8 +90,8 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
 		
 		if (_viewCur == VIEW_INTRO)
     	  return _viewIntro.onTouch(x, y, touchType);
-		// if (_viewCur == VIEW_GAME)
-		//   return _viewGame.onTouch(x, y, touchType);
+		if (_viewCur == VIEW_GAME)
+			return _viewGame.onTouch(x, y, touchType);
 		return true;
     }
 
@@ -116,7 +117,7 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
                 _viewIntro.start();
                 break;
             case VIEW_GAME:
-                // _viewGame.start();
+                _viewGame.start();
                 break;
             default:
                 Log.d(LOG_TAG, "onResume: Invalid id of view");
@@ -131,7 +132,7 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
                 _viewIntro.stop();
                 break;
             case VIEW_GAME:
-                // _viewGame.stop();
+            	_viewGame.onPause();
                 break;
             default:
                 break;
@@ -142,8 +143,8 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
 	}
 
 	protected void onDestroy() {
-		// if (_viewCur == VIEW_GAME)
-		//     _viewGame.onDestroy();
+		if (_viewCur == VIEW_GAME)
+		    _viewGame.onDestroy();
 		super.onDestroy();
 	}
 }
