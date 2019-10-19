@@ -11,6 +11,9 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import edu.amd.spbstu.colorglue.intro.AppIntro;
+import edu.amd.spbstu.colorglue.intro.ViewIntro;
+
 import static edu.amd.spbstu.colorglue.Constants.*;
 
 
@@ -59,17 +62,15 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
 		_viewCur = viewID;
 		switch (viewID) {
 			case VIEW_INTRO:
-				Log.d(LOG_TAG, "Switch to intro" );
+				Log.d(LOG_TAG, "Switch to intro");
 				_viewIntro = new ViewIntro(this);
 				setContentView(_viewIntro);
 				break;
 			case VIEW_GAME:
-				Log.d(LOG_TAG, "Switch to game" );
-				/*
-				_viewGame = new ViewGame(this);
-				setContentView(_viewGame);
-				_viewGame.start();
-				*/
+				Log.d(LOG_TAG, "Switch to game");
+//				_viewGame = new ViewGame(this);
+//				setContentView(_viewGame);
+//				_viewGame.start();
 				break;
 			default:
 				Log.d(LOG_TAG, "Undefined id of view" );

@@ -1,11 +1,8 @@
-package edu.amd.spbstu.colorglue;
+package edu.amd.spbstu.colorglue.intro;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
@@ -20,13 +17,13 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.util.Log;
 
-import java.io.IOException;
-import java.io.InputStream;
+import edu.amd.spbstu.colorglue.ActivityMain;
+import edu.amd.spbstu.colorglue.R;
 
 import static edu.amd.spbstu.colorglue.Constants.*;
 
 
-class AppIntro {
+public class AppIntro {
     private static final int APP_STATE_START = 0;
     private static final int APP_STATE_CIRCLE_INC = 1;
     private static final int APP_STATE_APPLE_2ND_RADIUS	= 2;
@@ -82,7 +79,7 @@ class AppIntro {
     private RectF _rectBtnStart;
     private RectF _rectBtnWeb;
 
-    AppIntro(ActivityMain ctx) {
+    public AppIntro(ActivityMain ctx) {
         _ctx = ctx;
         _prevTime = -1;
 
@@ -212,8 +209,8 @@ class AppIntro {
     // t in [0..1]
     private void getCardioid(float t, float cx, float cy, float radiusBase, float radiusApple, V2d pointOut) {
         double phi = Math.PI * 2.0 * t;
-        pointOut.x = (int)(cx + radiusBase * Math.sin(phi) + radiusApple * (Math.sin(phi) - Math.sin(2.0f * phi)) );
-        pointOut.y = (int)(cy - radiusBase * Math.cos(phi) - radiusApple * (Math.cos(phi) - Math.cos(2.0f * phi)) );
+        pointOut.x = (int)(cx + radiusBase * Math.sin(phi) + radiusApple * (Math.sin(phi) - Math.sin(2.0f * phi)));
+        pointOut.y = (int)(cy - radiusBase * Math.cos(phi) - radiusApple * (Math.cos(phi) - Math.cos(2.0f * phi)));
     }
 
     private void acceptNewScreen(Canvas canvas) {
@@ -620,7 +617,7 @@ class AppIntro {
         _timeState += deltaTimeMs;
     } // func
 
-    public boolean onTouch(int x, int y, int touchType) {
+    boolean onTouch(int x, int y, int touchType) {
         if (touchType != TOUCH_DOWN)
             return false;
 

@@ -1,9 +1,11 @@
-package edu.amd.spbstu.colorglue;
+package edu.amd.spbstu.colorglue.intro;
 
 import android.graphics.Canvas;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
+
+import edu.amd.spbstu.colorglue.ActivityMain;
 
 
 class RedrawHandler extends Handler {
@@ -24,16 +26,13 @@ class RedrawHandler extends Handler {
 	}
 }
 
-public class ViewIntro extends View
-{
+public class ViewIntro extends View {
 	// CONST
 	private static final int UPDATE_TIME_MS = 30;
 
 	// DATA
 	ActivityMain _app;
 	RedrawHandler _handler;
-	long _startTime;
-	int _lineLen;
 	boolean _active;
 	
 	// METHODS
@@ -42,14 +41,8 @@ public class ViewIntro extends View
 		_app = app;
 		
 		_handler = new RedrawHandler(this);
-		_startTime = 0;
-		_lineLen = 0;
 		_active = false;
 		setOnTouchListener(app);
-	}
-
-	public boolean performClick() {
-		return super.performClick();
 	}
 	
 	public void start() {
@@ -59,7 +52,6 @@ public class ViewIntro extends View
 
 	public void stop() {
 		_active = false;
-		//_handler.sleep(UPDATE_TIME_MS);
 	}
 	
 	public void update() {
