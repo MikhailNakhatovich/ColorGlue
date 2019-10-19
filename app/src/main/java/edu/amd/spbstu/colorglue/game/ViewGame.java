@@ -49,8 +49,12 @@ public class ViewGame extends View {
 	private static final int TIME_SQUARE_MOVE = 200;
 	private static final int TIME_SQUARE_PULSE = 100;
 	private static final int TIME_SQUARE_APPEAR = 100;
+	private static final int TIME_TOUCH_AGAIN = 200;
 	
 	private static final int UPDATE_TIME_MS = 30;
+
+	private static final int PLAY_USER = 0;
+	private static final int PLAY_AUTO = 1;
 	
 	private static final int GAME_STATE_FIELD_APPEAR = 0;
 	private static final int GAME_STATE_PLAY = 1;
@@ -93,9 +97,9 @@ public class ViewGame extends View {
 	
 	private String _strRestart, _strScore, _strBestScore;
 	
-	private int _timeCur, _timePrev, _timeStateStart, _timeBackStateStart;
+	private int _timeCur, _timePrev, _timeStateStart, _timeBackStateStart, _timeTouch;
 
-	private int _gameState, _backgroundState, _curColor;
+	private int _gameState, _backgroundState, _curColor, _topClickCount, _whoPlays;
 	private int[] _colors;
 	private Square[] _gameField;
 
@@ -119,8 +123,7 @@ public class ViewGame extends View {
 	private boolean _is_moving;
 	private int _touchX, _touchY;
 
-	private float _yFieldUp;
-	private float _yFieldLo;
+	private float _yFieldUp, _yFieldLo;
 	private float _yButtonsLo;
 	private float _cellSide;
 	private int _scrW, _scrH;
@@ -142,10 +145,6 @@ public class ViewGame extends View {
 		_strScore = app.getString(R.string.str_score);
 		_strBestScore = app.getString(R.string.str_best_score);
 
-		_gameState = GAME_STATE_FIELD_APPEAR;
-		_timeCur = _timeStateStart = -1;
-		_touchState = 0;
-		_gameScore = 0;
 		_gameBestScore = 0;
 		_scrW = -1;
 		_timePrev = -1;
@@ -222,13 +221,15 @@ public class ViewGame extends View {
 		_timeCur = (int)(System.currentTimeMillis());
 
 		_gameState = GAME_STATE_FIELD_APPEAR;
-		_timeCur = _timeStateStart = _timeBackStateStart = -1;
+		_timeCur = _timeStateStart = _timeBackStateStart = _timeTouch = -1;
 		_touchState = 0;
 		_touchX = _touchY = -1;
 		_gameScore = 0;
 		_is_moving = false;
 		_curColor = SQUARE_2;
 		_backgroundState = BACKGROUND_STATE_SIT;
+		_topClickCount = 0;
+		_whoPlays = PLAY_USER;
 
 		for (int i = 0; i < NUM_CELLS * NUM_CELLS; ++i) {
 			_gameField[i] = null;
@@ -480,7 +481,24 @@ public class ViewGame extends View {
 	public boolean onTouch(int x, int y, int evtType) {
 		if (_gameState <= GAME_STATE_FIELD_APPEAR)
 			return true;
-		
+
+		// check top bar
+		if ((float)y / _scrH < 0.1f && _whoPlays == PLAY_USER) {
+			if (evtType == TOUCH_DOWN) {
+				if (_timeCur - _timeTouch < TIME_TOUCH_AGAIN) {
+					_topClickCount++;
+					if (_topClickCount >= 3) {
+						_topClickCount = 0;
+						_whoPlays = PLAY_AUTO;
+						Toast.makeText(_app, "AUTO PLAY UNLOCKED", Toast.LENGTH_LONG).show();
+					}
+				} else {
+					_topClickCount = _topClickCount == 0 ? 1 : 0;
+				}
+				_timeTouch = _timeCur;
+				return true;
+			}
+		}
 		
 		// check buttons press
 		if (evtType == TOUCH_DOWN) {
@@ -491,7 +509,7 @@ public class ViewGame extends View {
 		}
 		
 		// check game field
-		if (!_is_moving && _gameState == GAME_STATE_PLAY) {
+		if (!_is_moving && _gameState == GAME_STATE_PLAY && _whoPlays == PLAY_USER) {
 			if (evtType == TOUCH_DOWN) {
 				_touchState = 1;
 				_touchX = x;
