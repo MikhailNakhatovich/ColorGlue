@@ -31,9 +31,9 @@ public class ViewIntro extends View {
 	private static final int UPDATE_TIME_MS = 30;
 
 	// DATA
-	ActivityMain _app;
-	RedrawHandler _handler;
-	boolean _active;
+	private ActivityMain _app;
+	private RedrawHandler _handler;
+	private boolean _active;
 	
 	// METHODS
 	public ViewIntro(ActivityMain app) {
