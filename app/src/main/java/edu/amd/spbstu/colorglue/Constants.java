@@ -3,15 +3,15 @@ package edu.amd.spbstu.colorglue;
 import android.view.MotionEvent;
 
 
-class Constants {
-    static final int VIEW_INTRO = 0;
-    static final int VIEW_GAME = 1;
+public class Constants {
+    public static final int VIEW_INTRO = 0;
+    public static final int VIEW_GAME = 1;
 
-    static final String LOG_TAG = "COLOR_GLUE";
+    public static final String LOG_TAG = "COLOR_GLUE";
 
-    static final int TOUCH_DOWN = 0;
-    static final int TOUCH_MOVE = 1;
-    static final int TOUCH_UP = 2;
+    public static final int TOUCH_DOWN = 0;
+    public static final int TOUCH_MOVE = 1;
+    public static final int TOUCH_UP = 2;
 
     static int getTouchType(MotionEvent evt) {
         switch (evt.getAction()) {
