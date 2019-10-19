@@ -64,7 +64,7 @@ public class ViewIntro extends View {
 
 	public boolean onTouch(int x, int y, int evtType) {
 		AppIntro app = _app.getApp();
-		return app.onTouch(x,  y, evtType);
+		return app.onTouch(x, y, evtType);
 	}
 
 	public void onDraw(Canvas canvas) {
