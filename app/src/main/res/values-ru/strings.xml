@@ -5,4 +5,8 @@
     <string name="str_university2">университет Петра Великого</string>
     <string name="str_toweb">На сайт</string>
     <string name="str_start">Старт</string>
+
+    <string name="str_restart">Заново</string>
+    <string name="str_score">Счёт</string>
+    <string name="str_best_score">Лучший счёт</string>
 </resources>
