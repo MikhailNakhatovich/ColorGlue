@@ -1,9 +1,14 @@
 <resources>
     <string name="app_name">ColorGlue</string>
+
     <string name="str_amd_url" translatable="false">https://amd.spbstu.ru/</string>
     <string name="str_depth">Applied Math Department</string>
     <string name="str_university1">Peter the Great St.Petersburg</string>
     <string name="str_university2">Politechnic University</string>
     <string name="str_toweb">To web site</string>
     <string name="str_start">Start</string>
+
+    <string name="str_restart">Restart</string>
+    <string name="str_score">Score</string>
+    <string name="str_best_score">Best score</string>
 </resources>
