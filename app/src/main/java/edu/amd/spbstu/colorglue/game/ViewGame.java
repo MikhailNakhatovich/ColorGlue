@@ -693,12 +693,16 @@ public class ViewGame extends View {
 		}
 	}
 
-	private void drawSitSquare(Canvas canvas, int k, int xPad, int yPad) {
+	private void drawSquareAtPoint(Canvas canvas, Bitmap bmp, int k, int xPad, int yPad) {
 		int r = getRowByCell(k), c = getColByCell(k);
 		int x = (int)(c * _cellSide), y = (int)(r * _cellSide + _yFieldUp);
-		drawBitmap(canvas, _bitmapSquare[_gameField[k]._indexBitmap],
+		drawBitmap(canvas, bmp,
 				x + xPad, y + yPad,
 				(int)(x + _cellSide - xPad), (int)(y + _cellSide - yPad));
+	}
+
+	private void drawSitSquare(Canvas canvas, int k, int xPad, int yPad) {
+		drawSquareAtPoint(canvas, _bitmapSquare[_gameField[k]._indexBitmap], k, xPad, yPad);
 	}
 
 	private void drawMoveSquare(Canvas canvas, int k, int xPad, int yPad) {
@@ -742,6 +746,8 @@ public class ViewGame extends View {
 					_curColor = squareDst._indexBitmap;
 					if (_curColor == SQUARE_1024) startWin();
 				}
+			} else {
+				drawSquareAtPoint(canvas, _bitmapSquare[square._indexBitmap], indexDst, xPad, yPad);
 			}
 		}
 	}
