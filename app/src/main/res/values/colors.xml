@@ -3,4 +3,16 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+
+    <color name="colorWhite">@android:color/white</color>
+    <color name="colorSquare2">#FF0094FF</color>
+    <color name="colorSquare4">#FF0026FF</color>
+    <color name="colorSquare8">#FFB200FF</color>
+    <color name="colorSquare16">#FFFF00DC</color>
+    <color name="colorSquare32">#FFFF0000</color>
+    <color name="colorSquare64">#FFFF6A00</color>
+    <color name="colorSquare128">#FFFFD800</color>
+    <color name="colorSquare256">#FFB6FF00</color>
+    <color name="colorSquare512">#FF4CFF00</color>
+    <color name="colorSquare1024">#FF00FFFF</color>
 </resources>
