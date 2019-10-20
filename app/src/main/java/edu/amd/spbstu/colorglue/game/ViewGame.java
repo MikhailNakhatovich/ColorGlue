@@ -1,5 +1,6 @@
 package edu.amd.spbstu.colorglue.game;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -50,6 +51,7 @@ public class ViewGame extends View {
 	private static final int TIME_SQUARE_PULSE = 100;
 	private static final int TIME_SQUARE_APPEAR = 100;
 	private static final int TIME_TOUCH_AGAIN = 200;
+	private static final int TIME_DIALOG_APPEAR = 600;
 	
 	private static final int UPDATE_TIME_MS = 30;
 
@@ -95,7 +97,7 @@ public class ViewGame extends View {
 	private ActivityMain _app;
 	private RefreshHandler _refresh;
 	
-	private String _strRestart, _strScore, _strBestScore;
+	private String _strRestart, _strScore, _strBestScore, _strResult, _strScoreResult;
 	
 	private int _timeCur, _timePrev, _timeStateStart, _timeBackStateStart, _timeTouch;
 
@@ -109,7 +111,7 @@ public class ViewGame extends View {
 	private Paint _paintBitmap;
 	private Paint _paintLine;
 	private Paint _paintRectButton;
-	private Paint _paintTextButton;
+	private Paint _paintTextButton, _paintTextResult;
 
 	private Rect _rectSrc;
 	private Rect _rectDst;
@@ -161,32 +163,33 @@ public class ViewGame extends View {
 		_rectDst = new Rect();
 		_rectButtonRestart = new RectF();
 
-		_bitmapBack	= BitmapFactory.decodeResource(app.getResources(), R.drawable.background);
+        Resources res = _app.getResources();
+		_bitmapBack	= BitmapFactory.decodeResource(res, R.drawable.background);
 		_bitmapSquare = new Bitmap[SQUARE_COUNT];
-		_bitmapSquare[SQUARE_FIELD] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_field);
-		_bitmapSquare[SQUARE_2] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_azure);
-		_bitmapSquare[SQUARE_4] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_blue);
-		_bitmapSquare[SQUARE_8] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_violet);
-		_bitmapSquare[SQUARE_16] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_purple_pizzazz);
-		_bitmapSquare[SQUARE_32] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_red);
-		_bitmapSquare[SQUARE_64] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_blaze_orange);
-		_bitmapSquare[SQUARE_128] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_yellow);
-		_bitmapSquare[SQUARE_256] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_lime);
-		_bitmapSquare[SQUARE_512] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_harlequin);
-		_bitmapSquare[SQUARE_1024] = BitmapFactory.decodeResource(app.getResources(), R.drawable.ico_turquoise);
+		_bitmapSquare[SQUARE_FIELD] = BitmapFactory.decodeResource(res, R.drawable.ico_field);
+		_bitmapSquare[SQUARE_2] = BitmapFactory.decodeResource(res, R.drawable.ico_azure);
+		_bitmapSquare[SQUARE_4] = BitmapFactory.decodeResource(res, R.drawable.ico_blue);
+		_bitmapSquare[SQUARE_8] = BitmapFactory.decodeResource(res, R.drawable.ico_violet);
+		_bitmapSquare[SQUARE_16] = BitmapFactory.decodeResource(res, R.drawable.ico_purple_pizzazz);
+		_bitmapSquare[SQUARE_32] = BitmapFactory.decodeResource(res, R.drawable.ico_red);
+		_bitmapSquare[SQUARE_64] = BitmapFactory.decodeResource(res, R.drawable.ico_blaze_orange);
+		_bitmapSquare[SQUARE_128] = BitmapFactory.decodeResource(res, R.drawable.ico_yellow);
+		_bitmapSquare[SQUARE_256] = BitmapFactory.decodeResource(res, R.drawable.ico_lime);
+		_bitmapSquare[SQUARE_512] = BitmapFactory.decodeResource(res, R.drawable.ico_harlequin);
+		_bitmapSquare[SQUARE_1024] = BitmapFactory.decodeResource(res, R.drawable.ico_turquoise);
 
 		_colors = new int[SQUARE_COUNT];
-		_colors[SQUARE_FIELD] = 0xFFFFFFFF;
-		_colors[SQUARE_2] = 0xFF0094FF;
-		_colors[SQUARE_4] = 0xFF0026FF;
-		_colors[SQUARE_8] = 0xFFB200FF;
-		_colors[SQUARE_16] = 0xFFFF00DC;
-		_colors[SQUARE_32] = 0xFFFF0000;
-		_colors[SQUARE_64] = 0xFFFF6A00;
-		_colors[SQUARE_128] = 0xFFFFD800;
-		_colors[SQUARE_256] = 0xFFB6FF00;
-		_colors[SQUARE_512] = 0xFF4CFF00;
-		_colors[SQUARE_1024] = 0xFF00FFFF;
+		_colors[SQUARE_FIELD] = res.getColor(R.color.colorWhite);
+		_colors[SQUARE_2] = res.getColor(R.color.colorSquare2);
+		_colors[SQUARE_4] = res.getColor(R.color.colorSquare4);
+		_colors[SQUARE_8] = res.getColor(R.color.colorSquare8);
+		_colors[SQUARE_16] = res.getColor(R.color.colorSquare16);
+		_colors[SQUARE_32] = res.getColor(R.color.colorSquare32);
+		_colors[SQUARE_64] = res.getColor(R.color.colorSquare64);
+		_colors[SQUARE_128] = res.getColor(R.color.colorSquare128);
+		_colors[SQUARE_256] = res.getColor(R.color.colorSquare256);
+		_colors[SQUARE_512] = res.getColor(R.color.colorSquare512);
+		_colors[SQUARE_1024] = res.getColor(R.color.colorSquare1024);
 		
 		_paintLine = new Paint();
 		_paintLine.setColor(0xFFFFFFFF);
@@ -199,6 +202,14 @@ public class ViewGame extends View {
 		_paintTextButton.setTextSize(20.0f);
 		_paintTextButton.setTextAlign(Align.CENTER);
 		_paintTextButton.setAntiAlias(true);
+
+        _paintTextResult = new Paint();
+        _paintTextResult.setColor(_colors[SQUARE_1024]);
+        _paintTextResult.setStyle(Style.FILL);
+        _paintTextResult.setFakeBoldText(true);
+        _paintTextResult.setTextSize(20.0f);
+        _paintTextResult.setTextAlign(Align.CENTER);
+        _paintTextResult.setAntiAlias(true);
 		
 		_paintRectButton = new Paint();
 		_paintRectButton.setStyle(Style.FILL);
@@ -258,14 +269,22 @@ public class ViewGame extends View {
 			_refresh.sleep(UPDATE_TIME_MS);
 	}
 
+	private void initScoreResults(boolean isWin) {
+		_gameBestScore = Math.max(_gameBestScore, _gameScore);
+	    _strScoreResult = _app.getString(R.string.str_score_result, _gameScore);
+	    _strResult = _app.getString(isWin ? R.string.str_win_result : R.string.str_lose_result);
+    }
+
 	private void startLose() {
 		_gameState = GAME_STATE_LOSE_APPEAR;
 		_timeStateStart = _timeCur;
+		initScoreResults(false);
 	}
 
 	private void startWin() {
 		_gameState = GAME_STATE_WIN_APPEAR;
 		_timeStateStart = _timeCur;
+		initScoreResults(true);
 	}
 
 	private int getRowByCell(int cellIndex) {
@@ -527,9 +546,9 @@ public class ViewGame extends View {
 	}
 
 	private void drawButton(Canvas canvas, RectF rectIn, String str, int color1, int color2, int alpha) {
-		int 	scrW 	= canvas.getWidth();
-		float	rectRad = scrW * 0.04f;
-		float	rectBord = scrW * 0.005f;
+		int scrW = canvas.getWidth();
+		float rectRad = scrW * 0.04f;
+		float rectBord = scrW * 0.005f;
 		RectF rect = new RectF(rectIn);
 		
 		RectF rectInside = new RectF( rect.left + rectBord, rect.top + rectBord, rect.right - rectBord, rect.bottom - rectBord);
@@ -569,12 +588,13 @@ public class ViewGame extends View {
 		_yFieldUp = (_scrH - _scrW) * 0.5f;
 		_yFieldLo = _yFieldUp + _scrW;
 
-		float 	yc = _yFieldUp * 0.5f;
-		float	btnW = 220 * _xScale;
-		float	btnH =  60 * _yScale;
-		float	h2 = btnH * 0.5f;
+		float yc = _yFieldUp * 0.5f;
+		float btnW = 220 * _xScale;
+		float btnH =  60 * _yScale;
+		float h2 = btnH * 0.5f;
 
 		_paintTextButton.setTextSize(_scrH * 0.02f);
+        _paintTextResult.setTextSize(_scrW * 0.1f);
 		
 		// outline painter
 		_paintButtonOutline = new Paint();
@@ -614,7 +634,6 @@ public class ViewGame extends View {
 		int xPad = (int)(3.0f * _xScale);
 		int yPad = (int)(3.0f * _yScale);
 		float dt;
-		Bitmap bmp;
 		
 		_paintBitmap.setAlpha(opacityBackground);
 		_paintLine.setAlpha(opacityBackground);
@@ -640,48 +659,41 @@ public class ViewGame extends View {
 		}
 
 		// Draw background of the grid
-		_rectDst.set(0, (int)_yFieldUp, _scrW, (int)_yFieldLo);
-		_rectSrc.set(0, 0, _bitmapBack.getWidth(), _bitmapBack.getHeight() );
-		_paintBitmap.setAlpha(opacityBackground);
-		canvas.drawBitmap(_bitmapBack, _rectSrc, _rectDst, _paintBitmap);
+        _paintBitmap.setAlpha(opacityBackground);
+        drawBitmap(canvas, _bitmapBack, 0, (int)_yFieldUp, _scrW, (int)_yFieldLo);
 
 		for (int k = 0; k < NUM_CELLS * NUM_CELLS; k++) {
 			r = getRowByCell(k);
 			c = getColByCell(k);
 			x = (int) (c * _cellSide);
 			y = (int) (r * _cellSide + _yFieldUp);
-
-			bmp = _bitmapSquare[SQUARE_FIELD];
-
-			_rectDst.set(x + xPad, y + yPad, (int)(x + _cellSide - xPad), (int)(y + _cellSide - yPad));
-			_rectSrc.set(0, 0, bmp.getWidth(), bmp.getHeight());
-			canvas.drawBitmap(bmp, _rectSrc, _rectDst, _paintBitmap);
+            drawBitmap(canvas, _bitmapSquare[SQUARE_FIELD],
+                    x + xPad, y + yPad,
+                    (int)(x + _cellSide - xPad), (int)(y + _cellSide - yPad));
 		}
 
-		
 		// Prepare Restart button coordinates
-		float	btnW = 280 * _xScale;
-		float	btnH =  80 * _yScale;
-		float	btnX = _scrW * 0.5f;
-		float	btnY = _yButtonsLo;
+		float btnW = 280 * _xScale;
+		float btnH =  80 * _yScale;
+		float btnX = _scrW * 0.5f;
+		float btnY = _yButtonsLo;
 		
 		// render button Restart
 		_rectButtonRestart.set(btnX - btnW * 0.5f, btnY - btnH * 0.5f, btnX + btnW * 0.5f, btnY + btnH * 0.5f);
 		drawButton(canvas, _rectButtonRestart, _strRestart, 0x92DCFE, 0x1e80B0, opacityBackground);
 		
-		
 		// ************** Top button Left ********************
 		
-		float 	yc = _yFieldUp * 0.5f;
+		float yc = _yFieldUp * 0.5f;
 		btnW = 220 * _xScale;
 		btnH =  60 * _yScale;
-		float	h2 = btnH * 0.5f;
+		float h2 = btnH * 0.5f;
 
 		_paintButtonOutline.setAlpha(opacityBackground);
 		_paintButtonLeft.setAlpha(opacityBackground);
 		_paintButtonRight.setAlpha(opacityBackground);
 		
-		float	rectRad = _scrW * 0.04f;
+		float rectRad = _scrW * 0.04f;
 		RectF rBtn = new RectF();
 		rBtn.set(-rectRad, yc - h2, btnW, yc + h2);
 		canvas.drawRoundRect(rBtn, rectRad , rectRad , _paintButtonLeft);
@@ -699,8 +711,8 @@ public class ViewGame extends View {
 		// Top button Right 
 		
 		rBtn.set(_scrW - 1 - btnW, yc - h2, _scrW + rectRad, yc + h2);
-		canvas.drawRoundRect(rBtn, rectRad , rectRad , _paintButtonRight);
-		canvas.drawRoundRect(rBtn, rectRad , rectRad , _paintButtonOutline);
+		canvas.drawRoundRect(rBtn, rectRad, rectRad, _paintButtonRight);
+		canvas.drawRoundRect(rBtn, rectRad, rectRad, _paintButtonOutline);
 		
 		str = _strBestScore + ": " + _gameBestScore;
 		rText = new Rect();
@@ -775,13 +787,13 @@ public class ViewGame extends View {
 				square._timeStart = _timeCur;
 				squareDst._timeEnd = _timeCur + TIME_SQUARE_PULSE;
 				squareDst._indexBitmap++;
+                _gameScore += (int) Math.pow(2 * square._indexBitmap, 2);
 				if (squareDst._indexBitmap > _curColor && _backgroundState == BACKGROUND_STATE_SIT) {
 					_backgroundState = BACKGROUND_STATE_CHANGE;
 					_timeBackStateStart = _timeCur;
 					_curColor = squareDst._indexBitmap;
 					if (_curColor == SQUARE_1024) startWin();
 				}
-				_gameScore += (int) Math.pow(2 * square._indexBitmap, 2);
 			}
 		}
 	}
@@ -826,9 +838,39 @@ public class ViewGame extends View {
 			}
 		}
 	}
+
+	private void drawResult(Canvas canvas, int opacityBackground) {
+	    float xc = _scrW * 0.5f, yc = _yFieldUp + _scrW / 2.0f;
+        Rect rText = new Rect();
+
+        _paintBitmap.setAlpha(2 * opacityBackground / 3);
+        drawBitmap(canvas, _bitmapBack, 0, (int)(_yFieldUp), _scrW, (int)(_yFieldLo));
+
+        _paintTextResult.setAlpha(opacityBackground);
+
+        _paintTextResult.getTextBounds(_strResult, 0, _strResult.length(), rText);
+        canvas.drawText(_strResult, xc, yc - rText.height(), _paintTextResult);
+
+        _paintTextResult.getTextBounds(_strScoreResult, 0, _strScoreResult.length(), rText);
+        canvas.drawText(_strScoreResult, xc, yc + 2 * rText.height(), _paintTextResult);
+    }
+
+    private int getOpacityBackground(int time) {
+        long dt = _timeCur - _timeStateStart;
+        int	opacityBackground = 255;
+        if (dt > time) {
+            _gameState++;
+            _timeStateStart = -1;
+        } else {
+            // calculate background opacity
+            opacityBackground = ((int)dt * 255) / time;
+            if (opacityBackground > 255)
+                opacityBackground = 255;
+        }
+        return opacityBackground;
+    }
 	
 	public void onDraw(Canvas canvas) {
-		long dt;
 		int	opacityBackground;
 
 		_timeCur = (int)(System.currentTimeMillis() & 0x3fffffff);
@@ -839,18 +881,8 @@ public class ViewGame extends View {
 		
 		// change state
 		opacityBackground = 255;
-		if (_gameState == GAME_STATE_FIELD_APPEAR)
-		{
-			dt = _timeCur - _timeStateStart;
-			if (dt > TIME_GAME_STATE_APPEAR) {
-				_gameState++;
-				_timeStateStart = -1;
-			} else {
-				// calculate background opacity
-				opacityBackground = ((int)dt * 255) / (TIME_GAME_STATE_APPEAR - 20);
-				if (opacityBackground > 255)
-					opacityBackground = 255;
-			}
+		if (_gameState == GAME_STATE_FIELD_APPEAR) {
+			opacityBackground = getOpacityBackground(TIME_GAME_STATE_APPEAR);
 		}
 		
 		if (_scrW < 0) prepareScreenValues(canvas);
@@ -863,14 +895,12 @@ public class ViewGame extends View {
 			if (_gameState == GAME_STATE_PLAY) {
 				checkMovedSquares();
 				if (!isPossibleToMove()) startLose();
-			} else if (_gameState == GAME_STATE_LOSE_APPEAR) {
-				_gameBestScore = Math.max(_gameBestScore, _gameScore);
-				Toast.makeText(_app, "You lose!!!", Toast.LENGTH_LONG).show();
-				_gameState = GAME_STATE_LOSE;
-			} else if (_gameState == GAME_STATE_WIN_APPEAR) {
-				_gameBestScore = Math.max(_gameBestScore, _gameScore);
-				Toast.makeText(_app, "You win!!!", Toast.LENGTH_LONG).show();
-				_gameState = GAME_STATE_WIN;
+			} else {
+                opacityBackground = 255;
+			    if (_gameState == GAME_STATE_WIN_APPEAR || _gameState == GAME_STATE_LOSE_APPEAR) {
+                        opacityBackground = getOpacityBackground(TIME_DIALOG_APPEAR);
+                }
+                drawResult(canvas, opacityBackground);
 			}
 		}
 	} // onDraw method
