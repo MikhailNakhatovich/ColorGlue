@@ -511,8 +511,8 @@ public class ViewGame extends View {
 					_topClickCount++;
 					if (_topClickCount >= 3) {
 						_topClickCount = 0;
-						_whoPlays = PLAY_AUTO;
-						Toast.makeText(_app, "AUTO PLAY UNLOCKED", Toast.LENGTH_LONG).show();
+						// _whoPlays = PLAY_AUTO;
+						// Toast.makeText(_app, "AUTO PLAY UNLOCKED", Toast.LENGTH_LONG).show();
 					}
 				} else {
 					_topClickCount = _topClickCount == 0 ? 1 : 0;
