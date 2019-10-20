@@ -20,14 +20,11 @@ import static edu.amd.spbstu.colorglue.Constants.*;
 
 public class ActivityMain extends Activity implements View.OnTouchListener {
 
-	int _viewCur = -1;
-	
-	AppIntro _app;
-	ViewIntro _viewIntro;
-    ViewGame _viewGame;
+	private int _viewCur = -1;
 
-	// screen dim
-	int _screenW, _screenH;
+	private AppIntro _app;
+	private ViewIntro _viewIntro;
+	private ViewGame _viewGame;
 
 	protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,10 +40,10 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
         Display display = getWindowManager().getDefaultDisplay();
         Point point = new Point();
         display.getSize(point);
-        _screenW = point.x;
-        _screenH = point.y;
+		// screen dim
+		int screenW = point.x, screenH = point.y;
         
-        Log.d(LOG_TAG, "Screen size is " + _screenW + " * " +  _screenH);
+        Log.d(LOG_TAG, "Screen size is " + screenW + " * " + screenH);
 
         // Create application
         _app = new AppIntro(this);
@@ -97,7 +94,7 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
 
     public boolean onKeyDown(int keyCode, KeyEvent evt) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			//Log.d("THREE", "Back key pressed");
+			//Log.d(LOG_TAG, "Back key pressed");
 			//boolean wantKill = _app.onKey(Application.KEY_BACK);
 			//if (wantKill)
 		    //		finish();
@@ -140,12 +137,6 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
 	
 	    // complete system
 		super.onPause();
-	}
-
-	protected void onDestroy() {
-		if (_viewCur == VIEW_GAME)
-		    _viewGame.onDestroy();
-		super.onDestroy();
 	}
 }
 
