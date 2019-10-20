@@ -1,5 +1,7 @@
 package edu.amd.spbstu.colorglue.game;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -147,7 +149,6 @@ public class ViewGame extends View {
 		_strScore = app.getString(R.string.str_score);
 		_strBestScore = app.getString(R.string.str_best_score);
 
-		_gameBestScore = 0;
 		_scrW = -1;
 		_timePrev = -1;
 		
@@ -215,6 +216,9 @@ public class ViewGame extends View {
 		_paintRectButton.setStyle(Style.FILL);
 		_paintRectButton.setAntiAlias(true);
 
+		SharedPreferences sharedPref = _app.getPreferences(Context.MODE_PRIVATE);
+		_gameBestScore = sharedPref.getInt(_app.getString(R.string.str_saved_best_score), 0);
+
 		gameRestart();
 	}
 
@@ -269,10 +273,18 @@ public class ViewGame extends View {
 			_refresh.sleep(UPDATE_TIME_MS);
 	}
 
+	private void saveScore() {
+		SharedPreferences sharedPref = _app.getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putInt(_app.getString(R.string.str_saved_best_score), _gameBestScore);
+		editor.apply();
+	}
+
 	private void initScoreResults(boolean isWin) {
 		_gameBestScore = Math.max(_gameBestScore, _gameScore);
 	    _strScoreResult = _app.getString(R.string.str_score_result, _gameScore);
 	    _strResult = _app.getString(isWin ? R.string.str_win_result : R.string.str_lose_result);
+	    saveScore();
     }
 
 	private void startLose() {
@@ -607,7 +619,7 @@ public class ViewGame extends View {
 		int[] colors = {0, 0};
 		colors[0] = 0xFFAA88 | 0xFF000000;
 		colors[1] = 0xAA4433 | 0xFF000000;
-		shader = new LinearGradient(0.0f, yc - h2, 0.0f, yc + h2, colors, null, Shader.TileMode.REPEAT);
+		shader = new LinearGradient(0.0f, yc - h2, 0.0f, yc + h2, colors, null, Shader.TileMode.CLAMP);
 		_paintButtonLeft = new Paint();
 		_paintButtonLeft.setAntiAlias(true);
 		_paintButtonLeft.setShader(shader);
@@ -686,7 +698,7 @@ public class ViewGame extends View {
 		
 		float yc = _yFieldUp * 0.5f;
 		btnW = 220 * _xScale;
-		btnH =  60 * _yScale;
+		btnH =  120 * _yScale;
 		float h2 = btnH * 0.5f;
 
 		_paintButtonOutline.setAlpha(opacityBackground);
