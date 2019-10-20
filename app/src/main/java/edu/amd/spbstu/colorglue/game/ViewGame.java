@@ -240,10 +240,6 @@ public class ViewGame extends View {
 		addNewSquare(k);
 		addNewSquare(l);
 	}
-	
-	public boolean performClick() {
-		return super.performClick();
-	}
 
 	public void start() {
 		_active = true;
@@ -253,8 +249,6 @@ public class ViewGame extends View {
 	public void onPause() {
 		_active = false;
 	}
-
-	public void onDestroy() {}
 	
 	public void update() {
 		if (!_active)
