@@ -11,4 +11,7 @@
     <string name="str_restart">Restart</string>
     <string name="str_score">Score</string>
     <string name="str_best_score">Best score</string>
+    <string name="str_score_result">Score: %1$d</string>
+    <string name="str_win_result">You win!!!</string>
+    <string name="str_lose_result">Game over!</string>
 </resources>

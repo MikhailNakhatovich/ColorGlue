@@ -9,4 +9,7 @@
     <string name="str_restart">Заново</string>
     <string name="str_score">Счёт</string>
     <string name="str_best_score">Лучший счёт</string>
+    <string name="str_score_result">Счёт: %1$d</string>
+    <string name="str_win_result">Вы победили!!!</string>
+    <string name="str_lose_result">Игра окончена!</string>
 </resources>
