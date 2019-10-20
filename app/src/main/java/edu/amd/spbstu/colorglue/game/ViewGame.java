@@ -115,13 +115,8 @@ public class ViewGame extends View {
 	private Paint _paintRectButton;
 	private Paint _paintTextButton, _paintTextResult;
 
-	private Rect _rectSrc;
-	private Rect _rectDst;
-	private RectF _rectButtonRestart;
-
-	private Paint _paintButtonOutline;
-	private Paint _paintButtonLeft;
-	private Paint _paintButtonRight;
+	private Rect _rectSrc, _rectDst, _rectText;
+	private RectF _rectButtonRestart, _rectTopResult;
 
 	private int _touchState;
 	private boolean _is_moving;
@@ -162,7 +157,9 @@ public class ViewGame extends View {
 		
 		_rectSrc = new Rect();
 		_rectDst = new Rect();
+		_rectText = new Rect();
 		_rectButtonRestart = new RectF();
+		_rectTopResult = new RectF();
 
         Resources res = _app.getResources();
 		_bitmapBack	= BitmapFactory.decodeResource(res, R.drawable.background);
@@ -557,13 +554,12 @@ public class ViewGame extends View {
 		return true;
 	}
 
-	private void drawButton(Canvas canvas, RectF rectIn, String str, int color1, int color2, int alpha) {
+	private void drawEmptyButton(Canvas canvas, RectF rect, int color1, int color2, int alpha) {
 		int scrW = canvas.getWidth();
 		float rectRad = scrW * 0.04f;
 		float rectBord = scrW * 0.005f;
-		RectF rect = new RectF(rectIn);
-		
-		RectF rectInside = new RectF( rect.left + rectBord, rect.top + rectBord, rect.right - rectBord, rect.bottom - rectBord);
+
+		RectF rectInside = new RectF(rect.left + rectBord, rect.top + rectBord, rect.right - rectBord, rect.bottom - rectBord);
 
 		int[] colors = {0, 0};
 		colors[0] = color1 | (alpha << 24);
@@ -573,20 +569,12 @@ public class ViewGame extends View {
 		paintInside.setAntiAlias(true);
 		paintInside.setShader(shader);
 
-		_paintRectButton.setColor(0xFFFFFF | (alpha<<24) );
+		_paintRectButton.setColor(0xFFFFFF | (alpha<<24));
 		canvas.drawRoundRect(rect, rectRad, rectRad, _paintRectButton);
-		_paintRectButton.setColor(0x808080 | (alpha<<24) );
+		_paintRectButton.setColor(0x808080 | (alpha<<24));
 		canvas.drawRoundRect(rectInside, rectRad, rectRad, paintInside);
-
-		Rect rText = new Rect();
-		_paintTextButton.getTextBounds(str, 0, str.length(), rText);
-		float h = rText.height();
-		float cx = rect.centerX();
-		float cy = rect.centerY();
-		_paintTextButton.setAlpha(alpha);
-		canvas.drawText(str, cx, cy + h * 0.5f, _paintTextButton);
 	}
-	
+
 	private void prepareScreenValues(Canvas canvas) {
 		// Get canvas (screen) size
 		_scrW = canvas.getWidth();
@@ -600,45 +588,17 @@ public class ViewGame extends View {
 		_yFieldUp = (_scrH - _scrW) * 0.5f;
 		_yFieldLo = _yFieldUp + _scrW;
 
-		float yc = _yFieldUp * 0.5f;
-		float btnW = 220 * _xScale;
-		float btnH =  60 * _yScale;
-		float h2 = btnH * 0.5f;
-
 		_paintTextButton.setTextSize(_scrH * 0.02f);
         _paintTextResult.setTextSize(_scrW * 0.1f);
-		
-		// outline painter
-		_paintButtonOutline = new Paint();
-		_paintButtonOutline.setStyle(Style.STROKE);
-		_paintButtonOutline.setStrokeWidth(4.0f);
-		_paintButtonOutline.setColor(0xaaaaaa);
-
-		LinearGradient shader;
-		// Top left button
-		int[] colors = {0, 0};
-		colors[0] = 0xFFAA88 | 0xFF000000;
-		colors[1] = 0xAA4433 | 0xFF000000;
-		shader = new LinearGradient(0.0f, yc - h2, 0.0f, yc + h2, colors, null, Shader.TileMode.CLAMP);
-		_paintButtonLeft = new Paint();
-		_paintButtonLeft.setAntiAlias(true);
-		_paintButtonLeft.setShader(shader);
-		_paintButtonLeft.setStyle(Style.FILL_AND_STROKE);
-		_paintButtonLeft.setColor(0xaaaaaa);
-		_paintButtonLeft.setAlpha(255);
-
-		// Top right button
-		shader = new LinearGradient(0.0f, yc - h2, 0.0f, yc + h2, colors, null, Shader.TileMode.CLAMP);
-		_paintButtonRight = new Paint();
-		_paintButtonRight.setAntiAlias(true);
-		_paintButtonRight.setShader(shader);
-		_paintButtonRight.setStyle(Style.FILL);
-		_paintButtonRight.setStyle(Style.FILL_AND_STROKE);
-		_paintButtonRight.setColor(0xaaaaaa);
-		_paintButtonRight.setAlpha(255);
 
 		// Low buttons
-		_yButtonsLo = _scrH - (_scrH - _yFieldLo) * 0.5f;
+		_yButtonsLo = (_scrH + _yFieldLo) * 0.5f;
+	}
+
+	private void drawText(Canvas canvas, String str, float x, float y, float mult) {
+		_paintTextButton.getTextBounds(str, 0, str.length(), _rectText);
+		float h = _rectText.height();
+		canvas.drawText(str, x, y + h * mult, _paintTextButton);
 	}
 	
 	private void drawBackground(Canvas canvas, int opacityBackground) {
@@ -685,54 +645,30 @@ public class ViewGame extends View {
 		}
 
 		// Prepare Restart button coordinates
-		float btnW = 280 * _xScale;
-		float btnH =  80 * _yScale;
-		float btnX = _scrW * 0.5f;
-		float btnY = _yButtonsLo;
-		
+		float btnW = 280 * _xScale, btnH = 80 * _yScale, btnX = _scrW * 0.5f, btnY = _yButtonsLo;
+		_paintTextButton.setAlpha(opacityBackground);
+
 		// render button Restart
 		_rectButtonRestart.set(btnX - btnW * 0.5f, btnY - btnH * 0.5f, btnX + btnW * 0.5f, btnY + btnH * 0.5f);
-		drawButton(canvas, _rectButtonRestart, _strRestart, 0x92DCFE, 0x1e80B0, opacityBackground);
+		drawEmptyButton(canvas, _rectButtonRestart, 0x92DCFE, 0x1e80B0, opacityBackground);
+		drawText(canvas, _strRestart, _rectButtonRestart.centerX(), _rectButtonRestart.centerY(), 0.5f);
 		
-		// ************** Top button Left ********************
-		
-		float yc = _yFieldUp * 0.5f;
-		btnW = 220 * _xScale;
-		btnH =  120 * _yScale;
-		float h2 = btnH * 0.5f;
+		// Top Result Left
+		btnW = 4 * _cellSide / 3;
+		float yc = _yFieldUp * 0.5f, h, xc = xPad + _cellSide / 3 + btnW * 0.5f;
 
-		_paintButtonOutline.setAlpha(opacityBackground);
-		_paintButtonLeft.setAlpha(opacityBackground);
-		_paintButtonRight.setAlpha(opacityBackground);
-		
-		float rectRad = _scrW * 0.04f;
-		RectF rBtn = new RectF();
-		rBtn.set(-rectRad, yc - h2, btnW, yc + h2);
-		canvas.drawRoundRect(rBtn, rectRad , rectRad , _paintButtonLeft);
-		canvas.drawRoundRect(rBtn, rectRad , rectRad , _paintButtonOutline);
+		_rectTopResult.set(xPad + _cellSide / 3, yc - btnH * 0.75f, xPad + 5 * _cellSide / 3, yc + btnH * 0.75f);
+		drawEmptyButton(canvas, _rectTopResult, 0x92DCFE, 0x1e80B0, opacityBackground);
+		drawText(canvas, _strScore, xc, yc, -0.25f);
+		drawText(canvas, String.valueOf(_gameScore), xc, yc, 1.25f);
 
-		String str = _strScore + ": " + _gameScore;
-		Rect rText = new Rect();
-		_paintTextButton.getTextBounds(str, 0, str.length(), rText);
-		float h = rText.height();
-		float xc = btnW * 0.5f;
-		_paintTextButton.setAlpha(opacityBackground);
-		canvas.drawText(str, xc, yc + h * 0.5f, _paintTextButton);
+		// Top Result Right
+		xc = xPad + _scrW / 2.0f + _cellSide / 3 + btnW * 0.5f;
 
-		// *************************************
-		// Top button Right 
-		
-		rBtn.set(_scrW - 1 - btnW, yc - h2, _scrW + rectRad, yc + h2);
-		canvas.drawRoundRect(rBtn, rectRad, rectRad, _paintButtonRight);
-		canvas.drawRoundRect(rBtn, rectRad, rectRad, _paintButtonOutline);
-		
-		str = _strBestScore + ": " + _gameBestScore;
-		rText = new Rect();
-		_paintTextButton.getTextBounds(str, 0, str.length(), rText);
-		h = rText.height();
-		xc = _scrW - 1 - btnW * 0.5f;
-		_paintTextButton.setAlpha(opacityBackground);
-		canvas.drawText(str, xc, yc + h * 0.5f, _paintTextButton);
+		_rectTopResult.set(xPad + _scrW / 2.0f + _cellSide / 3, yc - btnH * 0.75f, xPad + _scrW / 2.0f + 5 * _cellSide / 3, yc + btnH * 0.75f);
+		drawEmptyButton(canvas, _rectTopResult, 0x92DCFE, 0x1e80B0, opacityBackground);
+		drawText(canvas, _strBestScore, xc, yc, -0.25f);
+		drawText(canvas, String.valueOf(_gameBestScore), xc, yc, 1.25f);
 	}
 
 	private void drawBitmap(Canvas canvas, Bitmap bmp, int ldst, int tdst, int rdst, int ddst) {
