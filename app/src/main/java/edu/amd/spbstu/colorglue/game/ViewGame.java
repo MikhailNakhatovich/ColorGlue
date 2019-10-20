@@ -602,7 +602,7 @@ public class ViewGame extends View {
 	}
 	
 	private void drawBackground(Canvas canvas, int opacityBackground) {
-		int	r, c, x, y;
+		int r, c, x, y, curColor1 = (_curColor + 1) % SQUARE_COUNT;
 		int xPad = (int)(3.0f * _xScale);
 		int yPad = (int)(3.0f * _yScale);
 		float dt;
@@ -615,7 +615,7 @@ public class ViewGame extends View {
 		_rectDst.set(0, 0, _scrW, _scrH);
 		Paint paintInside = new Paint();
 		paintInside.setAntiAlias(true);
-		LinearGradient shaderRad = new LinearGradient(0, 0, 0, _scrH, _colors[_curColor - 1], _colors[_curColor], Shader.TileMode.MIRROR);
+		LinearGradient shaderRad = new LinearGradient(0, 0, 0, _scrH, _colors[curColor1], _colors[_curColor], Shader.TileMode.MIRROR);
 		dt = _timeCur - _timeBackStateStart;
 		if (_backgroundState == BACKGROUND_STATE_SIT || dt > TIME_BACKGROUND_STATE_CHANGE) {
 			_backgroundState = BACKGROUND_STATE_SIT;
@@ -624,8 +624,8 @@ public class ViewGame extends View {
 		} else {
 			dt /= TIME_BACKGROUND_STATE_CHANGE;
 			shaderRad = new LinearGradient(0, 0, 0, _scrH,
-					new int[] {_colors[_curColor - 2], _colors[_curColor - 1], _colors[_curColor]},
-					new float[] {0.0f, 1.0f - dt, 1.0f}, Shader.TileMode.MIRROR);
+					new int[] {_colors[curColor1], _colors[_curColor], _colors[_curColor - 1]},
+					new float[] {0.0f, dt, 1.0f}, Shader.TileMode.MIRROR);
 			paintInside.setShader(shaderRad);
 			canvas.drawRect(_rectDst, paintInside);
 		}
