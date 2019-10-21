@@ -79,7 +79,6 @@ public class ViewGame extends View {
 	private int _gameState, _backgroundState, _curColor, _topClickCount, _whoPlays;
 	private int[] _colors;
 	private Field _gameField;
-	// private AI _ai;
 
 	private Bitmap _bitmapBack;
 	private Bitmap[] _bitmapSquare;
@@ -118,7 +117,6 @@ public class ViewGame extends View {
 		_timePrev = -1;
 		
 		_gameField = new Field();
-		// _ai = new AI();
 
 		_paintBitmap = new Paint();
 		_paintBitmap.setColor(0xFFFFFFFF);
@@ -211,17 +209,16 @@ public class ViewGame extends View {
 			return true;
 
 		// check top bar
-		if ((float)y / _scrH < 0.1f && _whoPlays == PLAY_USER) {
+		if ((float)y / _scrH < 0.15f && _whoPlays == PLAY_USER) {
 			if (evtType == TOUCH_DOWN) {
 				if (_timeCur - _timeTouch < TIME_TOUCH_AGAIN) {
 					_topClickCount++;
 					if (_topClickCount >= 3) {
-						_topClickCount = 0;
 						_whoPlays = PLAY_AUTO;
 						Toast.makeText(_app, "AUTO PLAY UNLOCKED", Toast.LENGTH_SHORT).show();
-//						if (!_is_moving) {
-//							_is_moving = _gameField.startMove(_ai.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
-//						}
+						if (!_is_moving) {
+							_is_moving = _gameField.startMove(AI.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
+						}
 					}
 				} else {
 					_topClickCount = _topClickCount == 0 ? 1 : 0;
@@ -371,9 +368,9 @@ public class ViewGame extends View {
 			if (_curColor == SQUARE_WIN) startWin();
 			else if (!_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR) || !_gameField.isPossibleToMove()) startLose();
 			_is_moving = false;
-//			if (_gameState == GAME_STATE_PLAY && _whoPlays == PLAY_AUTO) {
-//				_is_moving = _gameField.startMove(_ai.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
-//			}
+			if (_gameState == GAME_STATE_PLAY && _whoPlays == PLAY_AUTO) {
+				_is_moving = _gameField.startMove(AI.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
+			}
 		}
 	}
 
@@ -478,7 +475,7 @@ public class ViewGame extends View {
 		
 		// Top Result Left
 		btnW = 4 * _cellSide / 3;
-		float yc = _yFieldUp * 0.5f, h, xc = xPad + _cellSide / 3 + btnW * 0.5f;
+		float yc = _yFieldUp * 0.5f, xc = xPad + _cellSide / 3 + btnW * 0.5f;
 
 		_rectTopResult.set(xPad + _cellSide / 3, yc - btnH * 0.75f, xPad + 5 * _cellSide / 3, yc + btnH * 0.75f);
 		drawEmptyButton(canvas, _rectTopResult, 0x92DCFE, 0x1e80B0, opacityBackground);
