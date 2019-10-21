@@ -15,16 +15,14 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
-
-import java.util.Random;
 
 import edu.amd.spbstu.colorglue.ActivityMain;
 import edu.amd.spbstu.colorglue.R;
 
 import static edu.amd.spbstu.colorglue.Constants.*;
+import static edu.amd.spbstu.colorglue.game.GameConstants.*;
 
 
 class RefreshHandler extends Handler {
@@ -70,31 +68,6 @@ public class ViewGame extends View {
 	private static final int BACKGROUND_STATE_CHANGE = 0;
 	private static final int BACKGROUND_STATE_SIT = 1;
 
-	private static final int SQUARE_FIELD = 0;
-	private static final int SQUARE_2 = 1;
-	private static final int SQUARE_4 = 2;
-	private static final int SQUARE_8 = 3;
-	private static final int SQUARE_16 = 4;
-	private static final int SQUARE_32 = 5;
-	private static final int SQUARE_64 = 6;
-	private static final int SQUARE_128 = 7;
-	private static final int SQUARE_256 = 8;
-	private static final int SQUARE_512 = 9;
-	private static final int SQUARE_1024 = 10;
-
-	private static final int SQUARE_COUNT = 11;
-	
-	private static final int NUM_CELLS = 4;
-
-	private static final int MOVE_LEFT = 0;
-	private static final int MOVE_UP = 1;
-	private static final int MOVE_RIGHT = 2;
-	private static final int MOVE_DOWN = 3;
-
-	private static final int[][] _start_indices = {{0, 0}, {0, 0}, {3, 0}, {0, 3}};
-	private static final int[][] _outer_iterators = {{0, 1}, {1, 0}, {0, 1}, {1, 0}};
-	private static final int[][] _inner_iterators = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
-
 	private boolean _active = false;
 	private ActivityMain _app;
 	private RefreshHandler _refresh;
@@ -105,7 +78,8 @@ public class ViewGame extends View {
 
 	private int _gameState, _backgroundState, _curColor, _topClickCount, _whoPlays;
 	private int[] _colors;
-	private Square[] _gameField;
+	private Field _gameField;
+	// private AI _ai;
 
 	private Bitmap _bitmapBack;
 	private Bitmap[] _bitmapSquare;
@@ -129,16 +103,12 @@ public class ViewGame extends View {
 	private float _xScale, _yScale;
 
 	private int _gameScore, _gameBestScore;
-
-	private Random _randomGen;
 	
 	public ViewGame(ActivityMain app) {
 		super(app);
 		_app = app;
 		_refresh = new RefreshHandler(this);
 		setOnTouchListener(_app);
-		
-		_randomGen = new Random();
 		
 		_strRestart = app.getString(R.string.str_restart);
 		_strScore = app.getString(R.string.str_score);
@@ -147,8 +117,8 @@ public class ViewGame extends View {
 		_scrW = -1;
 		_timePrev = -1;
 		
-		// Init game field with random Squares
-		_gameField = new Square[NUM_CELLS * NUM_CELLS];
+		_gameField = new Field();
+		// _ai = new AI();
 
 		_paintBitmap = new Paint();
 		_paintBitmap.setColor(0xFFFFFFFF);
@@ -219,40 +189,6 @@ public class ViewGame extends View {
 		gameRestart();
 	}
 
-	private void addNewSquare(int cellIndex) {
-		_gameField[cellIndex] = new Square();
-		_gameField[cellIndex]._cellSrc = cellIndex;
-		_gameField[cellIndex]._cellDst = -1;
-		_gameField[cellIndex]._indexBitmap = SQUARE_2;
-		_gameField[cellIndex]._state = Square.STATE_APPEAR;
-		_gameField[cellIndex]._timeStart = _timeCur;
-		_gameField[cellIndex]._timeEnd = _timeCur + TIME_SQUARE_APPEAR;
-	}
-
-	private void gameRestart() {
-		_timeCur = (int)(System.currentTimeMillis());
-
-		_gameState = GAME_STATE_FIELD_APPEAR;
-		_timeCur = _timeStateStart = _timeBackStateStart = _timeTouch = -1;
-		_touchState = 0;
-		_touchX = _touchY = -1;
-		_gameScore = 0;
-		_is_moving = false;
-		_curColor = SQUARE_2;
-		_backgroundState = BACKGROUND_STATE_SIT;
-		_topClickCount = 0;
-		_whoPlays = PLAY_USER;
-
-		for (int i = 0; i < NUM_CELLS * NUM_CELLS; ++i) {
-			_gameField[i] = null;
-		}
-		int k = _randomGen.nextInt(NUM_CELLS * NUM_CELLS);
-		int l = _randomGen.nextInt(NUM_CELLS * NUM_CELLS);
-		while (l == k) l = _randomGen.nextInt(NUM_CELLS * NUM_CELLS);
-		addNewSquare(k);
-		addNewSquare(l);
-	}
-
 	public void start() {
 		_active = true;
 		_refresh.sleep(UPDATE_TIME_MS);
@@ -270,236 +206,6 @@ public class ViewGame extends View {
 			_refresh.sleep(UPDATE_TIME_MS);
 	}
 
-	private void saveScore() {
-		SharedPreferences sharedPref = _app.getPreferences(Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor = sharedPref.edit();
-		editor.putInt(_app.getString(R.string.str_saved_best_score), _gameBestScore);
-		editor.apply();
-	}
-
-	private void initScoreResults(boolean isWin) {
-		_gameBestScore = Math.max(_gameBestScore, _gameScore);
-	    _strScoreResult = _app.getString(R.string.str_score_result, _gameScore);
-	    _strResult = _app.getString(isWin ? R.string.str_win_result : R.string.str_lose_result);
-	    saveScore();
-    }
-
-	private void startLose() {
-		_gameState = GAME_STATE_LOSE_APPEAR;
-		_timeStateStart = _timeCur;
-		initScoreResults(false);
-	}
-
-	private void startWin() {
-		_gameState = GAME_STATE_WIN_APPEAR;
-		_timeStateStart = _timeCur;
-		initScoreResults(true);
-	}
-
-	private int getRowByCell(int cellIndex) {
-		return cellIndex / NUM_CELLS;
-	}
-
-	private int getColByCell(int cellIndex) {
-		int r = cellIndex / NUM_CELLS;
-		int c;
-		c = +cellIndex - r * NUM_CELLS;
-		if (c < 0)
-			c += NUM_CELLS;
-		return c;
-	}
-
-	private int getScreenCoordXByCell(int indexCell) {
-		int c, x;
-		c = getColByCell(indexCell);
-		x = (int)(c * _cellSide + _cellSide * 0.5f);
-		return x;
-	}
-
-	private int getScreenCoordYByCell(int indexCell) {
-		int r, y;
-		r = getRowByCell(indexCell);
-		y = (int)(_yFieldUp + r * _cellSide + _cellSide * 0.5f);
-		return y;
-	}
-
-	private Square getSquareForCell(int c, int r) {
-		if (!checkNumInGrid(c) || !checkNumInGrid(r)) return null;
-		return _gameField[r * NUM_CELLS + c];
-	}
-
-	private boolean checkNumInGrid(int n) {
-		return n >= 0 && n < NUM_CELLS;
-	}
-
-	private void moveSquare(Square square, int cellDst) {
-		square._cellDst = cellDst;
-		square._state = Square.STATE_MOVE;
-		square._timeStart = _timeCur;
-		square._timeEnd = _timeCur + TIME_SQUARE_MOVE;
-	}
-
-	private int findNotEmptySquareByXY(int x, int y, int d, int c) {
-		int ans;
-		if (c == 0) {
-			for (ans = y; checkNumInGrid(ans) && getSquareForCell(x, ans) == null; ans += d);
-		} else {
-			for (ans = x; checkNumInGrid(ans) && getSquareForCell(ans, y) == null; ans += d);
-		}
-		return ans;
-	}
-
-	private boolean startMove(int direction) {
-		int al_direction = (direction + 2) % 4, prevX, prevY;
-		int sx = _start_indices[direction][0], sy = _start_indices[direction][1];
-		int aidx = _inner_iterators[al_direction][0], aidy = _inner_iterators[al_direction][1];
-		int odx = _outer_iterators[al_direction][0], ody = _outer_iterators[al_direction][1];
-		Square square, prevSquare;
-		int movements = 0;
-
-		if ((direction & 1) == 0) {
-			for (int y = sy; checkNumInGrid(y); y += ody) {
-				prevX = findNotEmptySquareByXY(sx, y, aidx, 1);
-				if (!checkNumInGrid(prevX)) continue;
-				for (int x = prevX + aidx, dstX = sx; checkNumInGrid(prevX);) {
-					x = findNotEmptySquareByXY(x, y, aidx, 1);
-					square = getSquareForCell(x, y);
-					prevSquare = getSquareForCell(prevX, y);
-					if (square != null && prevSquare._indexBitmap == square._indexBitmap) {
-						if (dstX != prevX) {
-							moveSquare(prevSquare, y * NUM_CELLS + dstX);
-							moveSquare(square, prevSquare._cellDst);
-						} else {
-							moveSquare(square, prevSquare._cellSrc);
-							prevSquare._cellDst = prevSquare._cellSrc;
-						}
-						movements++;
-						prevX = findNotEmptySquareByXY(x + aidx, y, aidx, 1);
-					} else {
-						if (prevX != dstX) moveSquare(prevSquare, y * NUM_CELLS + dstX);
-						prevX = findNotEmptySquareByXY(x, y, aidx, 1);
-					}
-					dstX += aidx;
-					x = prevX + aidx;
-				}
-			}
-		} else {
-			for (int x = sx; checkNumInGrid(x); x += odx) {
-				prevY = findNotEmptySquareByXY(x, sy, aidy, 0);
-				if (!checkNumInGrid(prevY)) continue;
-				for (int y = prevY + aidy, dstY = sy; checkNumInGrid(prevY);) {
-					y = findNotEmptySquareByXY(x, y, aidy, 0);
-					square = getSquareForCell(x, y);
-					prevSquare = getSquareForCell(x, prevY);
-					if (square != null && prevSquare._indexBitmap == square._indexBitmap) {
-						if (dstY != prevY) {
-							moveSquare(prevSquare, dstY * NUM_CELLS + x);
-							moveSquare(square, prevSquare._cellDst);
-						} else {
-							moveSquare(square, prevSquare._cellSrc);
-							prevSquare._cellDst = prevSquare._cellSrc;
-						}
-						movements++;
-						prevY = findNotEmptySquareByXY(x, y + aidy, aidy, 0);
-					} else {
-						if (prevY != dstY) moveSquare(prevSquare, dstY * NUM_CELLS + x);
-						prevY = findNotEmptySquareByXY(x, y, aidy, 0);
-					}
-					dstY += aidy;
-					y = prevY + aidy;
-				}
-			}
-		}
-		return movements > 0;
-	}
-
-	private int getMovements(int direction) {
-		int al_direction = (direction + 2) % 4, prevX, prevY;
-		int sx = _start_indices[direction][0], sy = _start_indices[direction][1];
-		int aidx = _inner_iterators[al_direction][0], aidy = _inner_iterators[al_direction][1];
-		int odx = _outer_iterators[al_direction][0], ody = _outer_iterators[al_direction][1];
-		Square square, prevSquare;
-		int movements = 0;
-
-		if ((direction & 1) == 0) {
-			for (int y = sy; checkNumInGrid(y); y += ody) {
-				prevX = findNotEmptySquareByXY(sx, y, aidx, 1);
-				if (!checkNumInGrid(prevX)) continue;
-				for (int x = prevX + aidx, dstX = sx; checkNumInGrid(prevX);) {
-					x = findNotEmptySquareByXY(x, y, aidx, 1);
-					square = getSquareForCell(x, y);
-					prevSquare = getSquareForCell(prevX, y);
-					if (square != null && prevSquare._indexBitmap == square._indexBitmap) {
-						movements++;
-						prevX = findNotEmptySquareByXY(x + aidx, y, aidx, 1);
-					} else {
-						if (prevX != dstX) movements++;
-						prevX = findNotEmptySquareByXY(x, y, aidx, 1);
-					}
-					dstX += aidx;
-					x = prevX + aidx;
-				}
-			}
-		} else {
-			for (int x = sx; checkNumInGrid(x); x += odx) {
-				prevY = findNotEmptySquareByXY(x, sy, aidy, 0);
-				if (!checkNumInGrid(prevY)) continue;
-				for (int y = prevY + aidy, dstY = sy; checkNumInGrid(prevY);) {
-					y = findNotEmptySquareByXY(x, y, aidy, 0);
-					square = getSquareForCell(x, y);
-					prevSquare = getSquareForCell(x, prevY);
-					if (square != null && prevSquare._indexBitmap == square._indexBitmap) {
-						movements++;
-						prevY = findNotEmptySquareByXY(x, y + aidy, aidy, 0);
-					} else {
-						if (prevY != dstY) movements++;
-						prevY = findNotEmptySquareByXY(x, y, aidy, 0);
-					}
-					dstY += aidy;
-					y = prevY + aidy;
-				}
-			}
-		}
-		return movements;
-	}
-
-	private boolean isPossibleToMove() {
-		return (getMovements(MOVE_LEFT) + getMovements(MOVE_UP) + getMovements(MOVE_RIGHT) + getMovements(MOVE_DOWN)) > 0;
-	}
-
-	private void createNewSquare() {
-		int[] emptyCells = new int[NUM_CELLS * NUM_CELLS];
-		int countEmpty = 0;
-		for (int k = 0; k < NUM_CELLS * NUM_CELLS; ++k) {
-			if (_gameField[k] == null) emptyCells[countEmpty++] = k;
-		}
-		if (countEmpty == 0) startLose();
-		else addNewSquare(emptyCells[_randomGen.nextInt(countEmpty)]);
-	}
-	
-	private void checkMovedSquares() {
-		Square square;
-		boolean found = false;
-
-		for (int k = 0; k < NUM_CELLS * NUM_CELLS; ++k) {
-			square = _gameField[k];
-			if (square != null && square._state == Square.STATE_MOVE) {
-				found = true;
-				break;
-			}
-		}
-		if (_is_moving && !found) createNewSquare();
-		_is_moving = found;
-	}
-
-	private int getDirection(int x, int y) {
-		int dx = Math.abs(x - _touchX), dy = Math.abs(y - _touchY);
-		if (y - _touchY > dx) return MOVE_DOWN;
-		else if (-y + _touchY > dx) return MOVE_UP;
-		else if (x - _touchX > dy) return MOVE_RIGHT;
-		else return MOVE_LEFT;
-	}
-
 	public boolean onTouch(int x, int y, int evtType) {
 		if (_gameState <= GAME_STATE_FIELD_APPEAR)
 			return true;
@@ -511,8 +217,11 @@ public class ViewGame extends View {
 					_topClickCount++;
 					if (_topClickCount >= 3) {
 						_topClickCount = 0;
-						// _whoPlays = PLAY_AUTO;
-						// Toast.makeText(_app, "AUTO PLAY UNLOCKED", Toast.LENGTH_LONG).show();
+						_whoPlays = PLAY_AUTO;
+						Toast.makeText(_app, "AUTO PLAY UNLOCKED", Toast.LENGTH_SHORT).show();
+//						if (!_is_moving) {
+//							_is_moving = _gameField.startMove(_ai.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
+//						}
 					}
 				} else {
 					_topClickCount = _topClickCount == 0 ? 1 : 0;
@@ -546,12 +255,126 @@ public class ViewGame extends View {
 					if (ratio < 1.2 && ratio > 0.83) return true;
 				}
 				if (_touchState == 1) {
-					_is_moving = startMove(getDirection(x, y));
+					_is_moving = _gameField.startMove(getDirection(x, y), _timeCur, TIME_SQUARE_MOVE);
 				}
 				_touchState = 0;
 			}
 		}
 		return true;
+	}
+
+	public void onDraw(Canvas canvas) {
+		int	opacityBackground;
+
+		_timeCur = (int)(System.currentTimeMillis() & 0x3fffffff);
+		if (_timePrev < 0) _timePrev = _timeCur;
+		_timePrev = _timeCur;
+
+		if (_timeStateStart < 0) _timeStateStart = _timeCur;
+
+		// change state
+		opacityBackground = 255;
+		if (_gameState == GAME_STATE_FIELD_APPEAR) {
+			opacityBackground = getOpacityBackground(TIME_GAME_STATE_APPEAR);
+		}
+
+		if (_scrW < 0) prepareScreenValues(canvas);
+
+		// Render game parts
+		drawBackground(canvas, opacityBackground);
+
+		if (_gameState > GAME_STATE_FIELD_APPEAR) {
+			drawSquares(canvas);
+			if (_gameState == GAME_STATE_PLAY) {
+				checkMovedSquares();
+			} else {
+				opacityBackground = 255;
+				if (_gameState == GAME_STATE_WIN_APPEAR || _gameState == GAME_STATE_LOSE_APPEAR) {
+					opacityBackground = getOpacityBackground(TIME_DIALOG_APPEAR);
+				}
+				drawResult(canvas, opacityBackground);
+			}
+		}
+	}
+
+	private void gameRestart() {
+		_timeCur = (int)(System.currentTimeMillis());
+
+		_gameState = GAME_STATE_FIELD_APPEAR;
+		_timeCur = _timeStateStart = _timeBackStateStart = _timeTouch = -1;
+		_touchState = 0;
+		_touchX = _touchY = -1;
+		_gameScore = 0;
+		_is_moving = false;
+		_curColor = SQUARE_2;
+		_backgroundState = BACKGROUND_STATE_SIT;
+		_topClickCount = 0;
+		_whoPlays = PLAY_USER;
+
+		for (int i = 0; i < NUM_CELLS * NUM_CELLS; ++i) {
+			_gameField.removeSquare(i);
+		}
+		_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR);
+		_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR);
+	}
+
+	private int getDirection(int x, int y) {
+		int dx = Math.abs(x - _touchX), dy = Math.abs(y - _touchY);
+		if (y - _touchY > dx) return MOVE_DOWN;
+		else if (-y + _touchY > dx) return MOVE_UP;
+		else if (x - _touchX > dy) return MOVE_RIGHT;
+		else return MOVE_LEFT;
+	}
+
+	private void saveScore() {
+		SharedPreferences sharedPref = _app.getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putInt(_app.getString(R.string.str_saved_best_score), _gameBestScore);
+		editor.apply();
+	}
+
+	private void initScoreResults(boolean isWin) {
+		_gameBestScore = Math.max(_gameBestScore, _gameScore);
+		_strScoreResult = _app.getString(R.string.str_score_result, _gameScore);
+		_strResult = _app.getString(isWin ? R.string.str_win_result : R.string.str_lose_result);
+		saveScore();
+	}
+
+	private void startLose() {
+		_gameState = GAME_STATE_LOSE_APPEAR;
+		_timeStateStart = _timeCur;
+		initScoreResults(false);
+	}
+
+	private void startWin() {
+		_gameState = GAME_STATE_WIN_APPEAR;
+		_timeStateStart = _timeCur;
+		initScoreResults(true);
+	}
+
+	private int getScreenCoordXByCell(int indexCell) {
+		int c, x;
+		c = Field.getColByCell(indexCell);
+		x = (int)(c * _cellSide + _cellSide * 0.5f);
+		return x;
+	}
+
+	private int getScreenCoordYByCell(int indexCell) {
+		int r, y;
+		r = Field.getRowByCell(indexCell);
+		y = (int)(_yFieldUp + r * _cellSide + _cellSide * 0.5f);
+		return y;
+	}
+
+	private void checkMovedSquares() {
+		if (_is_moving && !_gameField.checkMoveCells()) {
+			if (_curColor == SQUARE_WIN) startWin();
+			else if (!_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR) || !_gameField.isPossibleToMove()) startLose();
+			_is_moving = false;
+//			if (_gameState == GAME_STATE_PLAY && _whoPlays == PLAY_AUTO) {
+//				_is_moving = _gameField.startMove(_ai.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
+//			}
+		}
 	}
 
 	private void drawEmptyButton(Canvas canvas, RectF rect, int color1, int color2, int alpha) {
@@ -635,8 +458,8 @@ public class ViewGame extends View {
         drawBitmap(canvas, _bitmapBack, 0, (int)_yFieldUp, _scrW, (int)_yFieldLo);
 
 		for (int k = 0; k < NUM_CELLS * NUM_CELLS; k++) {
-			r = getRowByCell(k);
-			c = getColByCell(k);
+			r = Field.getRowByCell(k);
+			c = Field.getColByCell(k);
 			x = (int) (c * _cellSide);
 			y = (int) (r * _cellSide + _yFieldUp);
             drawBitmap(canvas, _bitmapSquare[SQUARE_FIELD],
@@ -678,10 +501,10 @@ public class ViewGame extends View {
 	}
 
 	private void drawAppearSquare(Canvas canvas, int k, int xPad, int yPad) {
-		Square square = _gameField[k];
+		Square square = _gameField.getSquare(k);
 		float t = (float)(_timeCur - square._timeStart) / (square._timeEnd - square._timeStart);
 		if (t < 1.0f) {
-			int r = getRowByCell(k), c = getColByCell(k);
+			int r = Field.getRowByCell(k), c = Field.getColByCell(k);
 			int x = (int)(c * _cellSide), y = (int)(r * _cellSide + _yFieldUp);
 			double shift = (_cellSide / 4.0) * Math.cos(t * Math.PI * 0.5);
 			drawBitmap(canvas, _bitmapSquare[square._indexBitmap],
@@ -694,7 +517,7 @@ public class ViewGame extends View {
 	}
 
 	private void drawSquareAtPoint(Canvas canvas, Bitmap bmp, int k, int xPad, int yPad) {
-		int r = getRowByCell(k), c = getColByCell(k);
+		int r = Field.getRowByCell(k), c = Field.getColByCell(k);
 		int x = (int)(c * _cellSide), y = (int)(r * _cellSide + _yFieldUp);
 		drawBitmap(canvas, bmp,
 				x + xPad, y + yPad,
@@ -702,11 +525,11 @@ public class ViewGame extends View {
 	}
 
 	private void drawSitSquare(Canvas canvas, int k, int xPad, int yPad) {
-		drawSquareAtPoint(canvas, _bitmapSquare[_gameField[k]._indexBitmap], k, xPad, yPad);
+		drawSquareAtPoint(canvas, _bitmapSquare[_gameField.getSquare(k)._indexBitmap], k, xPad, yPad);
 	}
 
 	private void drawMoveSquare(Canvas canvas, int k, int xPad, int yPad) {
-		Square square = _gameField[k];
+		Square square = _gameField.getSquare(k);
 		int	x0, y0, x1, y1, xMin, yMin, xMax, yMax, xc, yc;
 
 		x0 = getScreenCoordXByCell(square._cellSrc);
@@ -725,26 +548,25 @@ public class ViewGame extends View {
 		} else {
 			int indexSrc = square._cellSrc;
 			int indexDst = square._cellDst;
-			Square squareDst = _gameField[indexDst];
+			Square squareDst = _gameField.getSquare(indexDst);
 
 			if (squareDst == null) {
 				square._cellSrc = indexDst;
 				square._state = Square.STATE_SIT;
-				_gameField[indexSrc] = null;
-				_gameField[indexDst] = square;
+				_gameField.removeSquare(indexSrc);
+				_gameField.insertSquare(square);
 				drawSitSquare(canvas, indexDst, xPad, yPad);
 			} else if (squareDst._cellDst == indexDst) {
-				_gameField[indexSrc] = null;
+				_gameField.removeSquare(indexSrc);
 				squareDst._state = Square.STATE_PULSE;
 				square._timeStart = _timeCur;
 				squareDst._timeEnd = _timeCur + TIME_SQUARE_PULSE;
 				squareDst._indexBitmap++;
-                _gameScore += (int) Math.pow(2 * square._indexBitmap, 2);
+                _gameScore += getScore(square._indexBitmap);
 				if (squareDst._indexBitmap > _curColor && _backgroundState == BACKGROUND_STATE_SIT) {
 					_backgroundState = BACKGROUND_STATE_CHANGE;
 					_timeBackStateStart = _timeCur;
 					_curColor = squareDst._indexBitmap;
-					if (_curColor == SQUARE_1024) startWin();
 				}
 			} else {
 				drawSquareAtPoint(canvas, _bitmapSquare[square._indexBitmap], indexDst, xPad, yPad);
@@ -753,10 +575,10 @@ public class ViewGame extends View {
 	}
 
 	private void drawPulseSquare(Canvas canvas, int k, int xPad, int yPad) {
-		Square square = _gameField[k];
+		Square square = _gameField.getSquare(k);
 		float t = (float)(_timeCur - square._timeStart) / (square._timeEnd - square._timeStart);
 		if (t < 1.0f) {
-			int r = getRowByCell(k), c = getColByCell(k);
+			int r = Field.getRowByCell(k), c = Field.getColByCell(k);
 			int x = (int)(c * _cellSide), y = (int)(r * _cellSide + _yFieldUp);
 			double shift = 4 * Math.max(xPad, yPad) * Math.sin(t * Math.PI);
 			drawBitmap(canvas, _bitmapSquare[square._indexBitmap],
@@ -773,8 +595,8 @@ public class ViewGame extends View {
 		_paintBitmap.setAlpha(255);
 
 		for (int k = 0; k < NUM_CELLS * NUM_CELLS; k++) {
-			if (_gameField[k] == null) continue;
-			switch (_gameField[k]._state) {
+			if (_gameField.getSquare(k) == null) continue;
+			switch (_gameField.getSquare(k)._state) {
 				case Square.STATE_APPEAR:
 					drawAppearSquare(canvas, k, xPad, yPad);
 					break;
@@ -823,39 +645,4 @@ public class ViewGame extends View {
         }
         return opacityBackground;
     }
-	
-	public void onDraw(Canvas canvas) {
-		int	opacityBackground;
-
-		_timeCur = (int)(System.currentTimeMillis() & 0x3fffffff);
-		if (_timePrev < 0) _timePrev = _timeCur;
-		_timePrev = _timeCur;
-		
-		if (_timeStateStart < 0) _timeStateStart = _timeCur;
-		
-		// change state
-		opacityBackground = 255;
-		if (_gameState == GAME_STATE_FIELD_APPEAR) {
-			opacityBackground = getOpacityBackground(TIME_GAME_STATE_APPEAR);
-		}
-		
-		if (_scrW < 0) prepareScreenValues(canvas);
-		
-		// Render game parts
-		drawBackground(canvas, opacityBackground);
-
-		if (_gameState > GAME_STATE_FIELD_APPEAR) {
-			drawSquares(canvas);
-			if (_gameState == GAME_STATE_PLAY) {
-				checkMovedSquares();
-				if (!isPossibleToMove()) startLose();
-			} else {
-                opacityBackground = 255;
-			    if (_gameState == GAME_STATE_WIN_APPEAR || _gameState == GAME_STATE_LOSE_APPEAR) {
-                        opacityBackground = getOpacityBackground(TIME_DIALOG_APPEAR);
-                }
-                drawResult(canvas, opacityBackground);
-			}
-		}
-	} // onDraw method
 }

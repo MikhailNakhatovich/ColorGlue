@@ -14,4 +14,20 @@ class Square {
     int _timeEnd; // animation end time
     int _cellSrc; // from cell
     int _cellDst; // to cell
+
+    Square() {}
+
+    Square(int indexBitmap, int cellSrc) {
+        _indexBitmap = indexBitmap;
+        _cellSrc = cellSrc;
+    }
+
+    Square(Square square) {
+        _indexBitmap = square._indexBitmap;
+        _state = square._state;
+        _timeStart = square._timeStart;
+        _timeEnd = square._timeEnd;
+        _cellSrc = square._cellSrc;
+        _cellDst = square._cellDst;
+    }
 }
