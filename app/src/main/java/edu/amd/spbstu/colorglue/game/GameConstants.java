@@ -1,7 +1,8 @@
 package edu.amd.spbstu.colorglue.game;
 
 class GameConstants {
-    static final int NUM_CELLS = 4, NUM_CELLS2 = 16;
+    static final int NUM_CELLS = 4, NUM_CELLS2 = NUM_CELLS * NUM_CELLS;
+    static final int MOVE_TIMES = NUM_CELLS - 1;
 
     static final int MOVE_LEFT = 0;
     static final int MOVE_UP = 1;

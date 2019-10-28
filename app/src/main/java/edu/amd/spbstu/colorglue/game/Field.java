@@ -152,6 +152,17 @@ class Field {
         return movements > 0;
     }
 
+    int[] moveMultiple(int direction) {
+        int[] res = move(direction), newRes;
+        int isMoved = res[0];
+        for (int i = 0; i < MOVE_TIMES - 1 && isMoved != 0; ++i) {
+            newRes = move(direction);
+            isMoved = newRes[0];
+            res[1] += newRes[1];
+        }
+        return res;
+    }
+
     int[] move(int direction) {
         int al_direction = (direction + 2) % 4, prevX, prevY;
         int sx = _start_indices[direction][0], sy = _start_indices[direction][1];

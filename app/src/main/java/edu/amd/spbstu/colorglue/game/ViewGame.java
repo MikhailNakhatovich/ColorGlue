@@ -77,6 +77,7 @@ public class ViewGame extends View {
 	private int _timeCur, _timePrev, _timeStateStart, _timeBackStateStart, _timeTouch;
 
 	private int _gameState, _backgroundState, _curColor, _topClickCount, _whoPlays;
+	private int _moves, _moveDirection;
 	private int[] _colors;
 	private Field _gameField;
 
@@ -213,6 +214,7 @@ public class ViewGame extends View {
 						Toast.makeText(_app, _strAuto, Toast.LENGTH_SHORT).show();
 						if (!_isMoving) {
 							_isMoving = _gameField.startMove(AI.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
+							_moves = 1;
 						}
 					}
 				} else {
@@ -232,7 +234,7 @@ public class ViewGame extends View {
 		}
 		
 		// check game field
-		if (!_isMoving && _gameState == GAME_STATE_PLAY && _whoPlays == PLAY_USER) {
+		if (!_isMoving && _gameState == GAME_STATE_PLAY && _whoPlays == PLAY_USER && _moves == 0) {
 			if (evtType == TOUCH_DOWN) {
 				_touchState = 1;
 				_touchX = x;
@@ -247,7 +249,9 @@ public class ViewGame extends View {
 					if (ratio < 1.2 && ratio > 0.83) return true;
 				}
 				if (_touchState == 1) {
-					_isMoving = _gameField.startMove(getDirection(x, y), _timeCur, TIME_SQUARE_MOVE);
+					_moveDirection = getDirection(x, y);
+					_isMoving = _gameField.startMove(_moveDirection, _timeCur, TIME_SQUARE_MOVE);
+					if (_isMoving) _moves = 1;
 				}
 				_touchState = 0;
 			}
@@ -300,6 +304,8 @@ public class ViewGame extends View {
 		_curColor = SQUARE_2;
 		_backgroundState = BACKGROUND_STATE_SIT;
 		_topClickCount = 0;
+		_moves = 0;
+		_moveDirection = MOVE_LEFT;
 		_whoPlays = PLAY_USER;
 
 		for (int i = 0; i < NUM_CELLS * NUM_CELLS; ++i) {
@@ -359,11 +365,24 @@ public class ViewGame extends View {
 
 	private void checkMovedSquares() {
 		if (_isMoving && !_gameField.checkMoveCells()) {
+			if (_gameState == GAME_STATE_PLAY && _moves > 0 && _moves < MOVE_TIMES) {
+				_isMoving = _gameField.startMove(_moveDirection, _timeCur, TIME_SQUARE_MOVE);
+				if (_isMoving) {
+					_moves++;
+					return;
+				} else {
+					_moves = 0;
+				}
+			} else if (_moves == MOVE_TIMES) {
+				_moves = 0;
+			}
 			if (_curColor == SQUARE_WIN) startWin();
 			else if (!_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR) || !_gameField.isPossibleToMove()) startLose();
 			_isMoving = false;
 			if (_gameState == GAME_STATE_PLAY && _whoPlays == PLAY_AUTO) {
-				_isMoving = _gameField.startMove(AI.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
+				_moveDirection = AI.getBest(_gameField);
+				_isMoving = _gameField.startMove(_moveDirection, _timeCur, TIME_SQUARE_MOVE);
+				_moves = 1;
 			}
 		}
 	}

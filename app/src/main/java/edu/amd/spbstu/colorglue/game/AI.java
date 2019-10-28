@@ -51,7 +51,7 @@ class AI {
     }
 
     private static int[] moveAndAddSquare(Field field, int direction) {
-        int[] res = field.move(direction);
+        int[] res = field.moveMultiple(direction);
         if (res[0] > 0) field.addNewSquare();
         return res;
     }
