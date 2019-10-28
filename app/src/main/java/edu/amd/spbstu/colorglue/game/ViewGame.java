@@ -72,7 +72,7 @@ public class ViewGame extends View {
 	private ActivityMain _app;
 	private RefreshHandler _refresh;
 	
-	private String _strRestart, _strScore, _strBestScore, _strResult, _strScoreResult;
+	private String _strRestart, _strScore, _strBestScore, _strResult, _strScoreResult, _strAuto;
 	
 	private int _timeCur, _timePrev, _timeStateStart, _timeBackStateStart, _timeTouch;
 
@@ -92,7 +92,7 @@ public class ViewGame extends View {
 	private RectF _rectButtonRestart, _rectTopResult;
 
 	private int _touchState;
-	private boolean _is_moving;
+	private boolean _isMoving;
 	private int _touchX, _touchY;
 
 	private float _yFieldUp, _yFieldLo;
@@ -112,16 +112,16 @@ public class ViewGame extends View {
 		_strRestart = app.getString(R.string.str_restart);
 		_strScore = app.getString(R.string.str_score);
 		_strBestScore = app.getString(R.string.str_best_score);
+		_strAuto = app.getString(R.string.str_auto_mode);
 
 		_scrW = -1;
 		_timePrev = -1;
 		
 		_gameField = new Field();
 
-		_paintBitmap = new Paint();
+		_paintBitmap = new Paint(Paint.ANTI_ALIAS_FLAG);
 		_paintBitmap.setColor(0xFFFFFFFF);
 		_paintBitmap.setStyle(Style.FILL);
-		_paintBitmap.setAntiAlias(true);
 		
 		_rectSrc = new Rect();
 		_rectDst = new Rect();
@@ -157,29 +157,24 @@ public class ViewGame extends View {
 		_colors[SQUARE_512] = res.getColor(R.color.colorSquare512);
 		_colors[SQUARE_1024] = res.getColor(R.color.colorSquare1024);
 		
-		_paintLine = new Paint();
+		_paintLine = new Paint(Paint.ANTI_ALIAS_FLAG);
 		_paintLine.setColor(0xFFFFFFFF);
 		_paintLine.setStyle(Style.FILL);
-		_paintLine.setAntiAlias(true);
 		
-		_paintTextButton = new Paint();
+		_paintTextButton = new Paint(Paint.ANTI_ALIAS_FLAG);
 		_paintTextButton.setColor(0xFF000088);
 		_paintTextButton.setStyle(Style.FILL);
 		_paintTextButton.setTextSize(20.0f);
 		_paintTextButton.setTextAlign(Align.CENTER);
-		_paintTextButton.setAntiAlias(true);
 
-        _paintTextResult = new Paint();
+        _paintTextResult = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FAKE_BOLD_TEXT_FLAG);
         _paintTextResult.setColor(_colors[SQUARE_1024]);
         _paintTextResult.setStyle(Style.FILL);
-        _paintTextResult.setFakeBoldText(true);
         _paintTextResult.setTextSize(20.0f);
         _paintTextResult.setTextAlign(Align.CENTER);
-        _paintTextResult.setAntiAlias(true);
 		
-		_paintRectButton = new Paint();
+		_paintRectButton = new Paint(Paint.ANTI_ALIAS_FLAG);
 		_paintRectButton.setStyle(Style.FILL);
-		_paintRectButton.setAntiAlias(true);
 
 		SharedPreferences sharedPref = _app.getPreferences(Context.MODE_PRIVATE);
 		_gameBestScore = sharedPref.getInt(_app.getString(R.string.str_saved_best_score), 0);
@@ -201,7 +196,7 @@ public class ViewGame extends View {
 			  return;
 		// send next update to game
 		if (_active)
-			_refresh.sleep(UPDATE_TIME_MS);
+			_refresh.sleep(Math.max(UPDATE_TIME_MS - (System.currentTimeMillis() - _timePrev), 0));
 	}
 
 	public boolean onTouch(int x, int y, int evtType) {
@@ -209,15 +204,15 @@ public class ViewGame extends View {
 			return true;
 
 		// check top bar
-		if ((float)y / _scrH < 0.15f && _whoPlays == PLAY_USER) {
+		if ((float)y / _scrH < 0.15f && _whoPlays == PLAY_USER && _gameState == GAME_STATE_PLAY) {
 			if (evtType == TOUCH_DOWN) {
 				if (_timeCur - _timeTouch < TIME_TOUCH_AGAIN) {
 					_topClickCount++;
 					if (_topClickCount >= 3) {
 						_whoPlays = PLAY_AUTO;
-						Toast.makeText(_app, "AUTO PLAY UNLOCKED", Toast.LENGTH_SHORT).show();
-						if (!_is_moving) {
-							_is_moving = _gameField.startMove(AI.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
+						Toast.makeText(_app, _strAuto, Toast.LENGTH_SHORT).show();
+						if (!_isMoving) {
+							_isMoving = _gameField.startMove(AI.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
 						}
 					}
 				} else {
@@ -237,7 +232,7 @@ public class ViewGame extends View {
 		}
 		
 		// check game field
-		if (!_is_moving && _gameState == GAME_STATE_PLAY && _whoPlays == PLAY_USER) {
+		if (!_isMoving && _gameState == GAME_STATE_PLAY && _whoPlays == PLAY_USER) {
 			if (evtType == TOUCH_DOWN) {
 				_touchState = 1;
 				_touchX = x;
@@ -252,7 +247,7 @@ public class ViewGame extends View {
 					if (ratio < 1.2 && ratio > 0.83) return true;
 				}
 				if (_touchState == 1) {
-					_is_moving = _gameField.startMove(getDirection(x, y), _timeCur, TIME_SQUARE_MOVE);
+					_isMoving = _gameField.startMove(getDirection(x, y), _timeCur, TIME_SQUARE_MOVE);
 				}
 				_touchState = 0;
 			}
@@ -264,7 +259,6 @@ public class ViewGame extends View {
 		int	opacityBackground;
 
 		_timeCur = (int)(System.currentTimeMillis() & 0x3fffffff);
-		if (_timePrev < 0) _timePrev = _timeCur;
 		_timePrev = _timeCur;
 
 		if (_timeStateStart < 0) _timeStateStart = _timeCur;
@@ -302,7 +296,7 @@ public class ViewGame extends View {
 		_touchState = 0;
 		_touchX = _touchY = -1;
 		_gameScore = 0;
-		_is_moving = false;
+		_isMoving = false;
 		_curColor = SQUARE_2;
 		_backgroundState = BACKGROUND_STATE_SIT;
 		_topClickCount = 0;
@@ -364,12 +358,12 @@ public class ViewGame extends View {
 	}
 
 	private void checkMovedSquares() {
-		if (_is_moving && !_gameField.checkMoveCells()) {
+		if (_isMoving && !_gameField.checkMoveCells()) {
 			if (_curColor == SQUARE_WIN) startWin();
 			else if (!_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR) || !_gameField.isPossibleToMove()) startLose();
-			_is_moving = false;
+			_isMoving = false;
 			if (_gameState == GAME_STATE_PLAY && _whoPlays == PLAY_AUTO) {
-				_is_moving = _gameField.startMove(AI.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
+				_isMoving = _gameField.startMove(AI.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
 			}
 		}
 	}
@@ -431,7 +425,6 @@ public class ViewGame extends View {
 		_paintLine.setAlpha(opacityBackground);
 	
 		// Draw back gradient
-
 		_rectDst.set(0, 0, _scrW, _scrH);
 		Paint paintInside = new Paint();
 		paintInside.setAntiAlias(true);
@@ -440,6 +433,7 @@ public class ViewGame extends View {
 		if (_backgroundState == BACKGROUND_STATE_SIT || dt > TIME_BACKGROUND_STATE_CHANGE) {
 			_backgroundState = BACKGROUND_STATE_SIT;
 			paintInside.setShader(shaderRad);
+			paintInside.setAlpha(opacityBackground);
 			canvas.drawRect(_rectDst, paintInside);
 		} else {
 			dt /= TIME_BACKGROUND_STATE_CHANGE;
@@ -447,6 +441,7 @@ public class ViewGame extends View {
 					new int[] {_colors[curColor1], _colors[_curColor], _colors[_curColor - 1]},
 					new float[] {0.0f, dt, 1.0f}, Shader.TileMode.MIRROR);
 			paintInside.setShader(shaderRad);
+			paintInside.setAlpha(opacityBackground);
 			canvas.drawRect(_rectDst, paintInside);
 		}
 
@@ -474,18 +469,19 @@ public class ViewGame extends View {
 		drawText(canvas, _strRestart, _rectButtonRestart.centerX(), _rectButtonRestart.centerY(), 0.5f);
 		
 		// Top Result Left
-		btnW = 4 * _cellSide / 3;
-		float yc = _yFieldUp * 0.5f, xc = xPad + _cellSide / 3 + btnW * 0.5f;
+		float cell4Side = (float)(_scrW - 1) / 4;
+		btnW = 4 * cell4Side / 3;
+		float yc = _yFieldUp * 0.5f, xc = xPad + cell4Side / 3 + btnW * 0.5f;
 
-		_rectTopResult.set(xPad + _cellSide / 3, yc - btnH * 0.75f, xPad + 5 * _cellSide / 3, yc + btnH * 0.75f);
+		_rectTopResult.set(xPad + cell4Side / 3, yc - btnH * 0.75f, xPad + 5 * cell4Side / 3, yc + btnH * 0.75f);
 		drawEmptyButton(canvas, _rectTopResult, 0x92DCFE, 0x1e80B0, opacityBackground);
 		drawText(canvas, _strScore, xc, yc, -0.25f);
 		drawText(canvas, String.valueOf(_gameScore), xc, yc, 1.25f);
 
 		// Top Result Right
-		xc = xPad + _scrW / 2.0f + _cellSide / 3 + btnW * 0.5f;
+		xc = xPad + _scrW / 2.0f + cell4Side / 3 + btnW * 0.5f;
 
-		_rectTopResult.set(xPad + _scrW / 2.0f + _cellSide / 3, yc - btnH * 0.75f, xPad + _scrW / 2.0f + 5 * _cellSide / 3, yc + btnH * 0.75f);
+		_rectTopResult.set(xPad + _scrW / 2.0f + cell4Side / 3, yc - btnH * 0.75f, xPad + _scrW / 2.0f + 5 * cell4Side / 3, yc + btnH * 0.75f);
 		drawEmptyButton(canvas, _rectTopResult, 0x92DCFE, 0x1e80B0, opacityBackground);
 		drawText(canvas, _strBestScore, xc, yc, -0.25f);
 		drawText(canvas, String.valueOf(_gameBestScore), xc, yc, 1.25f);
@@ -558,7 +554,7 @@ public class ViewGame extends View {
 				squareDst._state = Square.STATE_PULSE;
 				square._timeStart = _timeCur;
 				squareDst._timeEnd = _timeCur + TIME_SQUARE_PULSE;
-				squareDst._indexBitmap++;
+				if (squareDst._indexBitmap < SQUARE_WIN) squareDst._indexBitmap++;
                 _gameScore += getScore(square._indexBitmap);
 				if (squareDst._indexBitmap > _curColor && _backgroundState == BACKGROUND_STATE_SIT) {
 					_backgroundState = BACKGROUND_STATE_CHANGE;

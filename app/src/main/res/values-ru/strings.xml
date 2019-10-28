@@ -12,4 +12,5 @@
     <string name="str_score_result">Счёт: %1$d</string>
     <string name="str_win_result">Вы победили!!!</string>
     <string name="str_lose_result">Игра окончена!</string>
+    <string name="str_auto_mode">АВТОМАТИЧЕСКИЙ РЕЖИМ</string>
 </resources>

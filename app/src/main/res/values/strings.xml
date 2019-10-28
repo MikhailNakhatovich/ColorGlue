@@ -14,6 +14,7 @@
     <string name="str_score_result">Score: %1$d</string>
     <string name="str_win_result">You win!!!</string>
     <string name="str_lose_result">Game over!</string>
+    <string name="str_auto_mode">AUTO MODE</string>
 
     <string name="str_saved_best_score" translatable="false">SAVED_BEST_SCORE</string>
 </resources>
