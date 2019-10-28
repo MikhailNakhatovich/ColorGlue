@@ -24,6 +24,6 @@ class GameConstants {
     static final int SQUARE_WIN = SQUARE_1024;
 
     static int getScore(int index) {
-        return (int) Math.pow(2 * index, 2);
+        return 2 * (int) Math.pow(2, index);
     }
 }
