@@ -7,7 +7,7 @@ import static edu.amd.spbstu.colorglue.game.GameConstants.*;
 
 
 class Field {
-    private static final int[][] _start_indices = {{0, 0}, {0, 0}, {3, 0}, {0, 3}};
+    private static final int[][] _start_indices = {{0, 0}, {0, 0}, {NUM_CELLS - 1, 0}, {0, NUM_CELLS - 1}};
     private static final int[][] _outer_iterators = {{0, 1}, {1, 0}, {0, 1}, {1, 0}};
 
     private static final int[][] _directions = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
@@ -169,6 +169,7 @@ class Field {
                     square = getSquare(x, y);
                     prevSquare = getSquare(prevX, y);
                     if (square != null && prevSquare._indexBitmap == square._indexBitmap) {
+                        score += getScore(square._indexBitmap);
                         if (dstX != prevX) {
                             moveSquare(prevSquare, y * NUM_CELLS + dstX);
                             moveSquare(square, y * NUM_CELLS + dstX);
@@ -176,7 +177,6 @@ class Field {
                             moveSquare(square, prevSquare._cellSrc);
                             prevSquare._cellDst = prevSquare._cellSrc;
                         }
-                        score += getScore(square._indexBitmap);
                         movements++;
                         prevX = findNotEmptySquareByXY(x + aidx, y, al_direction)[0];
                     } else {
@@ -199,6 +199,7 @@ class Field {
                     square = getSquare(x, y);
                     prevSquare = getSquare(x, prevY);
                     if (square != null && prevSquare._indexBitmap == square._indexBitmap) {
+                        score += getScore(square._indexBitmap);
                         if (dstY != prevY) {
                             moveSquare(prevSquare, dstY * NUM_CELLS + x);
                             moveSquare(square, dstY * NUM_CELLS + x);
@@ -206,7 +207,6 @@ class Field {
                             moveSquare(square, prevSquare._cellSrc);
                             prevSquare._cellDst = prevSquare._cellSrc;
                         }
-                        score += getScore(square._indexBitmap);
                         movements++;
                         prevY = findNotEmptySquareByXY(x, y + aidy, al_direction)[1];
                     } else {
