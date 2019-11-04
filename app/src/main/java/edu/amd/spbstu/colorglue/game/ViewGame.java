@@ -80,6 +80,7 @@ public class ViewGame extends View {
 	private int _moves, _moveDirection;
 	private int[] _colors;
 	private Field _gameField;
+	private AIThread _aiThread;
 
 	private Bitmap _bitmapBack;
 	private Bitmap[] _bitmapSquare;
@@ -212,9 +213,10 @@ public class ViewGame extends View {
 					if (_topClickCount >= 3) {
 						_whoPlays = PLAY_AUTO;
 						Toast.makeText(_app, _strAuto, Toast.LENGTH_SHORT).show();
+						startAIThread();
 						if (!_isMoving) {
-							_isMoving = _gameField.startMove(AI.getBest(_gameField), _timeCur, TIME_SQUARE_MOVE);
-							_moves = 1;
+							_aiThread.startMove(_gameField);
+							_moves = 0;
 						}
 					}
 				} else {
@@ -293,6 +295,7 @@ public class ViewGame extends View {
 	}
 
 	private void gameRestart() {
+		stopAIThread();
 		_timeCur = (int)(System.currentTimeMillis());
 
 		_gameState = GAME_STATE_FIELD_APPEAR;
@@ -331,6 +334,7 @@ public class ViewGame extends View {
 	}
 
 	private void initScoreResults(boolean isWin) {
+		stopAIThread();
 		_gameBestScore = Math.max(_gameBestScore, _gameScore);
 		_strScoreResult = _app.getString(R.string.str_score_result, _gameScore);
 		_strResult = _app.getString(isWin ? R.string.str_win_result : R.string.str_lose_result);
@@ -364,8 +368,9 @@ public class ViewGame extends View {
 	}
 
 	private void checkMovedSquares() {
+		if (_gameState != GAME_STATE_PLAY) return;
 		if (_isMoving && !_gameField.checkMoveCells()) {
-			if (_gameState == GAME_STATE_PLAY && _moves > 0 && _moves < MOVE_TIMES) {
+			if (_moves > 0 && _moves < MOVE_TIMES) {
 				_isMoving = _gameField.startMove(_moveDirection, _timeCur, TIME_SQUARE_MOVE);
 				if (_isMoving) {
 					_moves++;
@@ -376,14 +381,29 @@ public class ViewGame extends View {
 			} else if (_moves == MOVE_TIMES) {
 				_moves = 0;
 			}
-			if (_curColor == SQUARE_WIN) startWin();
-			else if (!_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR) || !_gameField.isPossibleToMove()) startLose();
 			_isMoving = false;
-			if (_gameState == GAME_STATE_PLAY && _whoPlays == PLAY_AUTO) {
-				_moveDirection = AI.getBest(_gameField);
-				_isMoving = _gameField.startMove(_moveDirection, _timeCur, TIME_SQUARE_MOVE);
-				_moves = 1;
+			if (_curColor == SQUARE_WIN) {
+				startWin();
+				return;
+			} else if (!_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR) || !_gameField.isPossibleToMove()) {
+				startLose();
+				return;
 			}
+			if (_whoPlays == PLAY_AUTO) {
+				if (!_aiThread.isNeedMove() && !_aiThread.isCalculated()) {
+					_aiThread.startMove(_gameField);
+				} else if (_aiThread.isCalculated()) {
+					_moveDirection = _aiThread.getBest();
+					_aiThread.notCalculated();
+					_isMoving = _gameField.startMove(_moveDirection, _timeCur, TIME_SQUARE_MOVE);
+					_moves = 1;
+				}
+			}
+		} else if (!_isMoving && _whoPlays == PLAY_AUTO && _aiThread.isCalculated() && _moves == 0) {
+			_moveDirection = _aiThread.getBest();
+			_aiThread.notCalculated();
+			_isMoving = _gameField.startMove(_moveDirection, _timeCur, TIME_SQUARE_MOVE);
+			_moves = 1;
 		}
 	}
 
@@ -657,4 +677,26 @@ public class ViewGame extends View {
         }
         return opacityBackground;
     }
+
+    private void startAIThread() {
+		if (_aiThread == null) {
+			_aiThread = new AIThread();
+			_aiThread.isRunning(true);
+			_aiThread.start();
+		}
+	}
+
+    private void stopAIThread() {
+		if (_aiThread != null && _aiThread.isRunning()) {
+			_aiThread.isRunning(false);
+			boolean retry = true;
+			while (retry) {
+				try {
+					_aiThread.join();
+					retry = false;
+				} catch (InterruptedException e) {}
+			}
+			_aiThread = null;
+		}
+	}
 }

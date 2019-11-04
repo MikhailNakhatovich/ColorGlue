@@ -4,7 +4,7 @@ import static edu.amd.spbstu.colorglue.game.GameConstants.*;
 
 
 class AI {
-    private static final int COUNT_RUNS = 30;
+    private static final int COUNT_RUNS = 60;
 
     static int getBest(Field field) {
         float bestScore = 0, score;
