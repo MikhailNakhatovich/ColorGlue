@@ -18,6 +18,8 @@ import android.os.Message;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.Arrays;
+
 import edu.amd.spbstu.colorglue.ActivityMain;
 import edu.amd.spbstu.colorglue.R;
 
@@ -68,6 +70,8 @@ public class ViewGame extends View {
 	private static final int BACKGROUND_STATE_CHANGE = 0;
 	private static final int BACKGROUND_STATE_SIT = 1;
 
+	private static final float BAR_DELTA = 1.0f / (SQUARE_COUNT - 1);
+
 	private boolean _active = false;
 	private ActivityMain _app;
 	private RefreshHandler _refresh;
@@ -78,7 +82,8 @@ public class ViewGame extends View {
 
 	private int _gameState, _backgroundState, _curColor, _topClickCount, _whoPlays;
 	private int _moves, _moveDirection;
-	private int[] _colors;
+	private int[] _colors, _barColors;
+	private float[] _grads;
 	private Field _gameField;
 	private AIThread _aiThread;
 
@@ -98,7 +103,7 @@ public class ViewGame extends View {
 	private int _touchX, _touchY;
 
 	private float _yFieldUp, _yFieldLo;
-	private float _yButtonsLo;
+	private float _yButtonsLo, _yBarLo;
 	private float _cellSide;
 	private int _scrW, _scrH;
 	private float _xScale, _yScale;
@@ -158,6 +163,13 @@ public class ViewGame extends View {
 		_colors[SQUARE_256] = res.getColor(R.color.colorSquare256);
 		_colors[SQUARE_512] = res.getColor(R.color.colorSquare512);
 		_colors[SQUARE_1024] = res.getColor(R.color.colorSquare1024);
+		_barColors = Arrays.copyOfRange(_colors, SQUARE_2, SQUARE_COUNT);
+		_grads = new float[_barColors.length + 1];
+		float left = 0.0f;
+		for (int k = 0; k < _grads.length; k++, left += BAR_DELTA) {
+			_grads[k] = left;
+		}
+		_grads[_grads.length - 1] = 1.0f;
 		
 		_paintLine = new Paint(Paint.ANTI_ALIAS_FLAG);
 		_paintLine.setColor(0xFFFFFFFF);
@@ -206,7 +218,7 @@ public class ViewGame extends View {
 			return true;
 
 		// check top bar
-		if ((float)y / _scrH < 0.15f && _whoPlays == PLAY_USER && _gameState == GAME_STATE_PLAY) {
+		if (y < _yBarLo && _whoPlays == PLAY_USER && _gameState == GAME_STATE_PLAY) {
 			if (evtType == TOUCH_DOWN) {
 				if (_timeCur - _timeTouch < TIME_TOUCH_AGAIN) {
 					_topClickCount++;
@@ -446,6 +458,7 @@ public class ViewGame extends View {
 
 		// Low buttons
 		_yButtonsLo = (_scrH + _yFieldLo) * 0.5f;
+		_yBarLo = _yFieldUp * 0.5f - 80 * _yScale * 0.8f;
 	}
 
 	private void drawText(Canvas canvas, String str, float x, float y, float mult) {
@@ -482,6 +495,20 @@ public class ViewGame extends View {
 			paintInside.setShader(shaderRad);
 			paintInside.setAlpha(opacityBackground);
 			canvas.drawRect(_rectDst, paintInside);
+		}
+
+		// Draw progress
+		paintInside.setShader(null);
+		for (int k = 0; k < _barColors.length; ++k) {
+			paintInside.setColor(_barColors[k]);
+			paintInside.setAlpha(opacityBackground);
+			canvas.drawRect(_scrW * _grads[k], 0, _scrW * _grads[k + 1], _yBarLo, paintInside);
+		}
+		paintInside.setColor(0xB4FFFFFF);
+		if (_backgroundState == BACKGROUND_STATE_CHANGE) {
+			canvas.drawRect(_scrW * (_grads[_curColor - 1] + dt * BAR_DELTA), 0, _scrW, _yBarLo, paintInside);
+		} else if (_curColor != SQUARE_WIN) {
+				canvas.drawRect(_scrW * _grads[_curColor], 0, _scrW, _yBarLo, paintInside);
 		}
 
 		// Draw background of the grid
