@@ -182,7 +182,7 @@ public class ViewGame extends View {
 		_paintTextButton.setTextAlign(Align.CENTER);
 
         _paintTextResult = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FAKE_BOLD_TEXT_FLAG);
-        _paintTextResult.setColor(_colors[SQUARE_1024]);
+        _paintTextResult.setColor(0x00FFFF);
         _paintTextResult.setStyle(Style.FILL);
         _paintTextResult.setTextSize(20.0f);
         _paintTextResult.setTextAlign(Align.CENTER);
@@ -304,6 +304,11 @@ public class ViewGame extends View {
 				drawResult(canvas, opacityBackground);
 			}
 		}
+	}
+
+	protected void onDetachedFromWindow() {
+		stopAIThread();
+		super.onDetachedFromWindow();
 	}
 
 	private void gameRestart() {
