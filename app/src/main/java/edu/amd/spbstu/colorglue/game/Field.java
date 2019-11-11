@@ -56,6 +56,17 @@ class Field {
         return true;
     }
 
+    void addNewSquare(int timeCur, int timeAppear, int cellIndex) {
+        if (!checkBound2(cellIndex)) return;
+        _field[cellIndex] = new Square();
+        _field[cellIndex]._cellSrc = cellIndex;
+        _field[cellIndex]._cellDst = -1;
+        _field[cellIndex]._indexBitmap = SQUARE_2;
+        _field[cellIndex]._state = Square.STATE_APPEAR;
+        _field[cellIndex]._timeStart = timeCur;
+        _field[cellIndex]._timeEnd = timeCur + timeAppear;
+    }
+
     void addNewSquare() {
         int[] emptyCells = getEmptyCells();
         if (emptyCells.length == 0) return;
@@ -67,12 +78,38 @@ class Field {
         _field[k]._state = Square.STATE_SIT;
     }
 
+    void addNewSquareIndex(int cellIndex, int index) {
+        if (!checkBound2(cellIndex) || index < SQUARE_2 || index > SQUARE_WIN) return;
+        _field[cellIndex] = new Square();
+        _field[cellIndex]._cellSrc = cellIndex;
+        _field[cellIndex]._cellDst = -1;
+        _field[cellIndex]._indexBitmap = index;
+        _field[cellIndex]._state = Square.STATE_SIT;
+    }
+
+    void addNewSquareIndex(int timeCur, int timeAppear, int cellIndex, int index) {
+        if (!checkBound2(cellIndex) || index < SQUARE_2 || index > SQUARE_WIN) return;
+        _field[cellIndex] = new Square();
+        _field[cellIndex]._cellSrc = cellIndex;
+        _field[cellIndex]._cellDst = -1;
+        _field[cellIndex]._indexBitmap = index;
+        _field[cellIndex]._state = Square.STATE_APPEAR;
+        _field[cellIndex]._timeStart = timeCur;
+        _field[cellIndex]._timeEnd = timeCur + timeAppear;
+    }
+
     void insertSquare(Square square) {
         _field[square._cellSrc] = square;
     }
 
     void removeSquare(int cellIndex) {
         _field[cellIndex] = null;
+    }
+
+    void clear() {
+        for (int i = 0; i < NUM_CELLS2; ++i) {
+            _field[i] = null;
+        }
     }
 
     boolean checkMoveCells() {
