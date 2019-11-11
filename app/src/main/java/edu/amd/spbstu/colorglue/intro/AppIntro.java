@@ -622,7 +622,7 @@ public class AppIntro {
             return false;
 
         if (_rectBtnStart.contains(x,  y)) {
-            _ctx.setView(VIEW_GAME);
+            _ctx.startGame();
             return false;
         }
 
@@ -633,7 +633,7 @@ public class AppIntro {
             return false;
         }
 
-        _ctx.setView(VIEW_GAME);
+        _ctx.startGame();
         return true;
     } // onTouch
 }

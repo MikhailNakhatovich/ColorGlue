@@ -5,7 +5,8 @@ import android.view.MotionEvent;
 
 public class Constants {
     public static final int VIEW_INTRO = 0;
-    public static final int VIEW_GAME = 1;
+    public static final int VIEW_TUTORIAL = 1;
+    public static final int VIEW_GAME = 2;
 
     public static final String LOG_TAG = "COLOR_GLUE";
 

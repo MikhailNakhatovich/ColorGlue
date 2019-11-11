@@ -1,17 +1,19 @@
 package edu.amd.spbstu.colorglue;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
 import edu.amd.spbstu.colorglue.game.ViewGame;
+import edu.amd.spbstu.colorglue.game.ViewTutorial;
 import edu.amd.spbstu.colorglue.intro.AppIntro;
 import edu.amd.spbstu.colorglue.intro.ViewIntro;
 
@@ -25,6 +27,9 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
 	private AppIntro _app;
 	private ViewIntro _viewIntro;
 	private ViewGame _viewGame;
+	private ViewTutorial _viewTutorial;
+
+	private boolean _isFirstGame;
 
 	protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,14 +45,11 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
         Display display = getWindowManager().getDefaultDisplay();
         Point point = new Point();
         display.getSize(point);
-		// screen dim
-		int screenW = point.x, screenH = point.y;
-        
-        Log.d(LOG_TAG, "Screen size is " + screenW + " * " + screenH);
 
-        // Create application
+		SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+		_isFirstGame = sharedPref.getBoolean(getString(R.string.str_saved_is_first_game), true);
+
         _app = new AppIntro(this);
-        // Create view
         setView(VIEW_INTRO);
 	}
 
@@ -63,6 +65,12 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
 				Log.d(LOG_TAG, "Switch to intro");
 				_viewIntro = new ViewIntro(this);
 				setContentView(_viewIntro);
+				break;
+			case VIEW_TUTORIAL:
+				Log.d(LOG_TAG, "Switch to tutorial");
+				_viewTutorial = new ViewTutorial(this);
+				setContentView(_viewTutorial);
+				_viewTutorial.start();
 				break;
 			case VIEW_GAME:
 				Log.d(LOG_TAG, "Switch to game");
@@ -84,24 +92,34 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
     	int x = (int)evt.getX();
     	int y = (int)evt.getY();
     	int touchType = getTouchType(evt);
-		
-		if (_viewCur == VIEW_INTRO)
-    	  return _viewIntro.onTouch(x, y, touchType);
-		if (_viewCur == VIEW_GAME)
-			return _viewGame.onTouch(x, y, touchType);
-		return true;
+
+    	switch (_viewCur) {
+			case VIEW_INTRO:
+				return _viewIntro.onTouch(x, y, touchType);
+			case VIEW_TUTORIAL:
+				return _viewTutorial.onTouch(x, y, touchType);
+			case VIEW_GAME:
+				return _viewGame.onTouch(x, y, touchType);
+			default:
+				return false;
+		}
     }
 
-    public boolean onKeyDown(int keyCode, KeyEvent evt) {
-		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			//Log.d(LOG_TAG, "Back key pressed");
-			//boolean wantKill = _app.onKey(Application.KEY_BACK);
-			//if (wantKill)
-		    //		finish();
-			//return true;
+    public void startGame() {
+		if (_isFirstGame) {
+			setView(VIEW_TUTORIAL);
+		} else {
+			setView(VIEW_GAME);
 		}
-        return super.onKeyDown(keyCode, evt);
-    }
+	}
+
+	public void endTutorial() {
+		_isFirstGame = false;
+		SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
+		editor.putBoolean(getString(R.string.str_saved_is_first_game), _isFirstGame);
+		editor.apply();
+		setView(VIEW_GAME);
+	}
 
     public AppIntro getApp() {
     	return _app;
@@ -113,6 +131,9 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
             case VIEW_INTRO:
                 _viewIntro.start();
                 break;
+			case VIEW_TUTORIAL:
+				_viewTutorial.start();
+				break;
             case VIEW_GAME:
                 _viewGame.start();
                 break;
@@ -128,6 +149,9 @@ public class ActivityMain extends Activity implements View.OnTouchListener {
             case VIEW_INTRO:
                 _viewIntro.stop();
                 break;
+			case VIEW_TUTORIAL:
+				_viewTutorial.onPause();
+				break;
             case VIEW_GAME:
             	_viewGame.onPause();
                 break;
