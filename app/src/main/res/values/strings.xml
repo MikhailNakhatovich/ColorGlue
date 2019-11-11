@@ -16,5 +16,31 @@
     <string name="str_lose_result">Game over!</string>
     <string name="str_auto_mode">AUTO MODE</string>
 
+    <string name="str_tutorial_begin">Hello from a tutorial. After the ending of the tutorial, you
+        don\'t see it again. Use taps for passing the tutorial. You can click on button \`%1$s\` at
+        the bottom for returning here. In the game, this button restarts the game.</string>
+    <string name="str_tutorial_swipe">Swipe any direction to move squares.</string>
+    <string name="str_tutorial_new_color">Combine same-color squares to make a next color
+        square.</string>
+    <string name="str_tutorial_score_text">Your score is shown here. Each color has its own
+        value - the next is 2 times the previous one, the initial color has a value of 2, the last,
+        respectively - 1024.\nWhen two same-colors combines, the score increases by the value of
+        the next color.</string>
+    <string name="str_tutorial_score">Try to get the score more than %1$d.</string>
+    <string name="str_tutorial_progress">Your progress is shown on this bar. Try to make up it on
+        two colors more.</string>
+    <string name="str_tutorial_new_color_combo_text">Combine chains of squares to get a combo.
+        The combo is a situation when more than one square combining occurs in one swipe.</string>
+    <string name="str_tutorial_new_color_combo">Try to get two combos.</string>
+    <string name="str_tutorial_lose">You lose when there are no possible swipes. Look at this
+        example.</string>
+    <string name="str_tutorial_win">You win by making the full progress. Look here.</string>
+    <string name="str_tutorial_ai_text">You can turn on an auto mode by fast three clicks on
+        progress. When auto mode is turned on you can\'t play yourself before ending of game or
+        clicking on button \`%1$s\`.</string>
+    <string name="str_tutorial_ai">Try to turn on the auto mode.</string>
+    <string name="str_tutorial_end">Good luck, have fun!\nTap to play.</string>
+
     <string name="str_saved_best_score" translatable="false">SAVED_BEST_SCORE</string>
+    <string name="str_saved_is_first_game" translatable="false">SAVED_IS_FIRST_GAME</string>
 </resources>
