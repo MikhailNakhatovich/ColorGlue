@@ -13,11 +13,14 @@ class Field {
     private static final int[][] _directions = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
 
     private Square[] _field;
-    private Random _randomGen;
+    private Random _genCellIndex, _genIndex;
+    private int _curColor;
 
     Field() {
         _field = new Square[NUM_CELLS2];
-        _randomGen = new Random();
+        _genCellIndex = new Random();
+        _genIndex = new Random();
+        _curColor = SQUARE_2;
     }
 
     Field(Field field) {
@@ -25,7 +28,9 @@ class Field {
         for (int k = 0; k < NUM_CELLS2; ++k) {
             if (field._field[k] != null) _field[k] = new Square(field._field[k]);
         }
-        _randomGen = field._randomGen;
+        _genCellIndex = new Random();
+        _genIndex = new Random();
+        _curColor = field._curColor;
     }
 
     Square getSquare(int cellIndex) {
@@ -38,6 +43,14 @@ class Field {
         return null;
     }
 
+    int curColor() {
+        return _curColor;
+    }
+
+    void curColor(int curColor) {
+        _curColor = curColor;
+    }
+
     boolean isPossibleToMove() {
         return checkEmptyCells() || checkMatches();
     }
@@ -45,11 +58,11 @@ class Field {
     boolean addNewSquare(int timeCur, int timeAppear) {
         int[] emptyCells = getEmptyCells();
         if (emptyCells.length == 0) return false;
-        int k = emptyCells[_randomGen.nextInt(emptyCells.length)];
+        int k = emptyCells[_genCellIndex.nextInt(emptyCells.length)];
         _field[k] = new Square();
         _field[k]._cellSrc = k;
         _field[k]._cellDst = -1;
-        _field[k]._indexBitmap = SQUARE_2;
+        _field[k]._indexBitmap = getIndexSquare();
         _field[k]._state = Square.STATE_APPEAR;
         _field[k]._timeStart = timeCur;
         _field[k]._timeEnd = timeCur + timeAppear;
@@ -61,7 +74,7 @@ class Field {
         _field[cellIndex] = new Square();
         _field[cellIndex]._cellSrc = cellIndex;
         _field[cellIndex]._cellDst = -1;
-        _field[cellIndex]._indexBitmap = SQUARE_2;
+        _field[cellIndex]._indexBitmap = getIndexSquare();
         _field[cellIndex]._state = Square.STATE_APPEAR;
         _field[cellIndex]._timeStart = timeCur;
         _field[cellIndex]._timeEnd = timeCur + timeAppear;
@@ -70,11 +83,11 @@ class Field {
     void addNewSquare() {
         int[] emptyCells = getEmptyCells();
         if (emptyCells.length == 0) return;
-        int k = emptyCells[_randomGen.nextInt(emptyCells.length)];
+        int k = emptyCells[_genCellIndex.nextInt(emptyCells.length)];
         _field[k] = new Square();
         _field[k]._cellSrc = k;
         _field[k]._cellDst = -1;
-        _field[k]._indexBitmap = SQUARE_2;
+        _field[k]._indexBitmap = getIndexSquare();
         _field[k]._state = Square.STATE_SIT;
     }
 
@@ -110,6 +123,11 @@ class Field {
         for (int i = 0; i < NUM_CELLS2; ++i) {
             _field[i] = null;
         }
+        _curColor = SQUARE_2;
+    }
+
+    boolean isWin() {
+        return _curColor == SQUARE_WIN;
     }
 
     boolean checkMoveCells() {
@@ -200,7 +218,7 @@ class Field {
         return res;
     }
 
-    int[] move(int direction) {
+    private int[] move(int direction) {
         int al_direction = (direction + 2) % 4, prevX, prevY;
         int sx = _start_indices[direction][0], sy = _start_indices[direction][1];
         int aidx = _directions[al_direction][0], aidy = _directions[al_direction][1];
@@ -334,6 +352,11 @@ class Field {
             }
         }
         return false;
+    }
+
+    private int getIndexSquare() {
+        if (_curColor == SQUARE_2) return SQUARE_2;
+        return _genIndex.nextDouble() >= 0.9 ? SQUARE_4 : SQUARE_2;
     }
 
     static int getRowByCell(int cellIndex) {

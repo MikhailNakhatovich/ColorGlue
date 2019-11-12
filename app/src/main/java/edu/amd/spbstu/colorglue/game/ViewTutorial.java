@@ -209,7 +209,6 @@ public class ViewTutorial extends ViewGameBase {
 		_isReadyState = false;
 		_gameField.clear();
 		_gameScore = 0;
-		_curColor = SQUARE_2;
 		_gameState = GAME_STATE_PLAY;
 
 		int top;
@@ -245,9 +244,9 @@ public class ViewTutorial extends ViewGameBase {
 				top = (int) _yBarLo;
 				break;
 			case TUTORIAL_STATE_NEW_COLOR_COMBO:
-				_curColor = SQUARE_8;
+				_gameField.curColor(SQUARE_8);
 				for (int ind = 0; ind < NUM_CELLS; ++ind) {
-					_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR, ind);
+					_gameField.addNewSquareIndex(_timeCur, TIME_SQUARE_APPEAR, ind, SQUARE_2);
 				}
 				_gameField.addNewSquareIndex(_timeCur, TIME_SQUARE_APPEAR, NUM_CELLS2 - NUM_CELLS, SQUARE_2);
 				for (int k = SQUARE_2, ind = NUM_CELLS2 - NUM_CELLS + 1; ind < NUM_CELLS2; ++ind, ++k) {
@@ -301,19 +300,19 @@ public class ViewTutorial extends ViewGameBase {
 				}
 				break;
 			case TUTORIAL_STATE_NEW_COLOR:
-				if (_curColor == SQUARE_4) setReadyState();
+				if (_gameField.curColor() == SQUARE_4) setReadyState();
 				break;
 			case TUTORIAL_STATE_SCORE:
 				if (_gameScore > NEED_SCORE) setReadyState();
 				break;
 			case TUTORIAL_STATE_PROGRESS:
-				if (_curColor >= SQUARE_8) setReadyState();
+				if (_gameField.curColor() >= SQUARE_8) setReadyState();
 				break;
 			case TUTORIAL_STATE_NEW_COLOR_COMBO:
-				if (_curColor >= SQUARE_16) setReadyState();
+				if (_gameField.curColor() >= SQUARE_16) setReadyState();
 				break;
 			case TUTORIAL_STATE_AI:
-				if (_curColor >= SQUARE_16) {
+				if (_gameField.curColor() >= SQUARE_16) {
 					stopAIThread();
 					setReadyState();
 				}
@@ -336,7 +335,7 @@ public class ViewTutorial extends ViewGameBase {
 
 	private void setLoseCombination4() {
 		_gameScore = 1900;
-		_curColor = SQUARE_128;
+		_gameField.curColor(SQUARE_128);
 		_gameState = GAME_STATE_LOSE;
 		_gameField.addNewSquareIndex(0, SQUARE_2);
 		_gameField.addNewSquareIndex(1, SQUARE_4);
@@ -358,7 +357,7 @@ public class ViewTutorial extends ViewGameBase {
 
 	private void setWinCombination4() {
 		_gameScore = 9284;
-		_curColor = SQUARE_1024;
+		_gameField.curColor(SQUARE_1024);
 		_gameState = GAME_STATE_WIN;
 		_gameField.addNewSquareIndex(0, SQUARE_2);
 		_gameField.addNewSquareIndex(1, SQUARE_16);

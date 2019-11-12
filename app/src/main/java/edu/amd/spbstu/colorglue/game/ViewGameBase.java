@@ -81,7 +81,7 @@ class ViewGameBase extends View {
 
 	protected int _timeCur, _timePrev, _timeStateStart, _timeBackStateStart, _timeTouch;
 
-	protected int _gameState, _curColor;
+	protected int _gameState;
 	private int _backgroundState, _topClickCount, _whoPlays;
 	private int _moves, _moveDirection;
 	protected int _cntMoves;
@@ -261,7 +261,6 @@ class ViewGameBase extends View {
 		_touchX = _touchY = -1;
 		_gameScore = 0;
 		_isMoving = false;
-		_curColor = SQUARE_2;
 		_backgroundState = BACKGROUND_STATE_SIT;
 		_topClickCount = 0;
 		_moves = 0;
@@ -386,7 +385,7 @@ class ViewGameBase extends View {
 				_moves = 0;
 			}
 			_isMoving = false;
-			if (_curColor == SQUARE_WIN) {
+			if (_gameField.isWin()) {
 				startWin();
 				return;
 			} else if (!_gameField.addNewSquare(_timeCur, TIME_SQUARE_APPEAR) || !_gameField.isPossibleToMove()) {
@@ -506,9 +505,9 @@ class ViewGameBase extends View {
 		paint.setColor(0xB4FFFFFF);
 		if (_backgroundState == BACKGROUND_STATE_CHANGE) {
 			dt /= TIME_BACKGROUND_STATE_CHANGE;
-			canvas.drawRect(_scrW * (_grads[_curColor - 1] + dt * BAR_DELTA), 0, _scrW, _yBarLo, paint);
-		} else if (_curColor != SQUARE_WIN) {
-			canvas.drawRect(_scrW * _grads[_curColor], 0, _scrW, _yBarLo, paint);
+			canvas.drawRect(_scrW * (_grads[_gameField.curColor() - 1] + dt * BAR_DELTA), 0, _scrW, _yBarLo, paint);
+		} else if (!_gameField.isWin()) {
+			canvas.drawRect(_scrW * _grads[_gameField.curColor()], 0, _scrW, _yBarLo, paint);
 		}
 	}
 
@@ -662,10 +661,10 @@ class ViewGameBase extends View {
 				squareDst._timeEnd = _timeCur + TIME_SQUARE_PULSE;
 				if (squareDst._indexBitmap < SQUARE_WIN) squareDst._indexBitmap++;
                 _gameScore += getScore(square._indexBitmap);
-				if (squareDst._indexBitmap > _curColor) {
+				if (squareDst._indexBitmap > _gameField.curColor()) {
 					_backgroundState = BACKGROUND_STATE_CHANGE;
 					_timeBackStateStart = _timeCur;
-					_curColor = squareDst._indexBitmap;
+					_gameField.curColor(squareDst._indexBitmap);
 				}
 			} else {
 				drawSquareAtPoint(canvas, _bitmapSquare[square._indexBitmap], indexDst, xPad, yPad);
@@ -690,11 +689,11 @@ class ViewGameBase extends View {
 	}
 
 	private void drawBackgroundGradient(Canvas canvas, int opacityBackground) {
-		int curColor1 = (_curColor + 1) % SQUARE_COUNT;
+		int curColor = _gameField.curColor(), curColor1 = (_gameField.curColor() + 1) % SQUARE_COUNT;
 		_rectDst.set(0, 0, _scrW, _scrH);
 		Paint paint = new Paint();
 		paint.setAntiAlias(true);
-		LinearGradient shaderRad = new LinearGradient(0, 0, 0, _scrH, _colors[curColor1], _colors[_curColor], Shader.TileMode.MIRROR);
+		LinearGradient shaderRad = new LinearGradient(0, 0, 0, _scrH, _colors[curColor1], _colors[curColor], Shader.TileMode.MIRROR);
 		float dt = _timeCur - _timeBackStateStart;
 		if (_backgroundState == BACKGROUND_STATE_SIT || dt > TIME_BACKGROUND_STATE_CHANGE) {
 			_backgroundState = BACKGROUND_STATE_SIT;
@@ -704,7 +703,7 @@ class ViewGameBase extends View {
 		} else {
 			dt /= TIME_BACKGROUND_STATE_CHANGE;
 			shaderRad = new LinearGradient(0, 0, 0, _scrH,
-					new int[] {_colors[curColor1], _colors[_curColor], _colors[_curColor - 1]},
+					new int[] {_colors[curColor1], _colors[curColor], _colors[curColor - 1]},
 					new float[] {0.0f, dt, 1.0f}, Shader.TileMode.MIRROR);
 			paint.setShader(shaderRad);
 			paint.setAlpha(opacityBackground);
