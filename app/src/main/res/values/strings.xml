@@ -20,6 +20,8 @@
         don\'t see it again. Use taps for passing the tutorial. You can click on button \`%1$s\` at
         the bottom for returning here. In the game, this button restarts the game.</string>
     <string name="str_tutorial_swipe">Swipe any direction to move squares.</string>
+    <string name="str_tutorial_swipe_color">After every swipe in a random free cell of the field, a
+        square appears - with a probability of 90% - blue, 10% - dark blue.</string>
     <string name="str_tutorial_new_color">Combine same-color squares to make a next color
         square.</string>
     <string name="str_tutorial_score_text">Your score is shown here. Each color has its own

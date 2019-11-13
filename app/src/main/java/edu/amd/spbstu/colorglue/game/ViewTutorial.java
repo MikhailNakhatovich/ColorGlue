@@ -21,7 +21,8 @@ public class ViewTutorial extends ViewGameBase {
 
 	private static final int TUTORIAL_STATE_BEGIN = 0;
 	private static final int TUTORIAL_STATE_SWIPE = TUTORIAL_STATE_BEGIN + 1;
-	private static final int TUTORIAL_STATE_NEW_COLOR = TUTORIAL_STATE_SWIPE + 1;
+	private static final int TUTORIAL_STATE_SWIPE_COLOR = TUTORIAL_STATE_SWIPE + 1;
+	private static final int TUTORIAL_STATE_NEW_COLOR = TUTORIAL_STATE_SWIPE_COLOR + 1;
 	private static final int TUTORIAL_STATE_PROGRESS = TUTORIAL_STATE_NEW_COLOR + 1;
 	private static final int TUTORIAL_STATE_NEW_COLOR_COMBO_TEXT = TUTORIAL_STATE_PROGRESS + 1;
 	private static final int TUTORIAL_STATE_NEW_COLOR_COMBO = TUTORIAL_STATE_NEW_COLOR_COMBO_TEXT + 1;
@@ -35,8 +36,9 @@ public class ViewTutorial extends ViewGameBase {
 	private static final int TUTORIAL_STATE_COUNT = TUTORIAL_STATE_END + 1;
 
 	private static final int[] _textStates = new int[] {TUTORIAL_STATE_BEGIN,
-			TUTORIAL_STATE_NEW_COLOR_COMBO_TEXT, TUTORIAL_STATE_SCORE_TEXT, TUTORIAL_STATE_LOSE,
-			TUTORIAL_STATE_WIN, TUTORIAL_STATE_AI_TEXT, TUTORIAL_STATE_END};
+			TUTORIAL_STATE_SWIPE_COLOR, TUTORIAL_STATE_NEW_COLOR_COMBO_TEXT,
+			TUTORIAL_STATE_SCORE_TEXT, TUTORIAL_STATE_LOSE, TUTORIAL_STATE_WIN,
+			TUTORIAL_STATE_AI_TEXT, TUTORIAL_STATE_END};
 
 	private static final int NEED_SCORE = 32;
 
@@ -57,6 +59,7 @@ public class ViewTutorial extends ViewGameBase {
 		_strTutorialTexts = new String[TUTORIAL_STATE_COUNT];
 		_strTutorialTexts[TUTORIAL_STATE_BEGIN] = app.getString(R.string.str_tutorial_begin, _strRestart);
 		_strTutorialTexts[TUTORIAL_STATE_SWIPE] = app.getString(R.string.str_tutorial_swipe);
+		_strTutorialTexts[TUTORIAL_STATE_SWIPE_COLOR] = app.getString(R.string.str_tutorial_swipe_color);
 		_strTutorialTexts[TUTORIAL_STATE_NEW_COLOR] = app.getString(R.string.str_tutorial_new_color);
 		_strTutorialTexts[TUTORIAL_STATE_NEW_COLOR_COMBO_TEXT] = app.getString(R.string.str_tutorial_new_color_combo_text);
 		_strTutorialTexts[TUTORIAL_STATE_NEW_COLOR_COMBO] = app.getString(R.string.str_tutorial_new_color_combo);
@@ -158,10 +161,9 @@ public class ViewTutorial extends ViewGameBase {
 		paint.setColor(0xB0000000);
 		canvas.drawRect(_rectDst, paint);
 
+		drawRestartButton(canvas, 255);
+
 		switch (_tutorialState) {
-			case TUTORIAL_STATE_BEGIN:
-				drawRestartButton(canvas, 255);
-				break;
 			case TUTORIAL_STATE_SWIPE:
 			case TUTORIAL_STATE_NEW_COLOR:
 			case TUTORIAL_STATE_LOSE:
